@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.11 2001/03/19 05:47:43 pete Exp $
+; $Id: vbeaf.asm,v 1.12 2001/03/19 06:35:58 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -651,7 +651,7 @@ proc _FindGraphicsMode
 	push	dword [edi]
 	push	esi
 	call	[esi+AF_DRIVER.GetVideoModeInfo]
-	add	esp, 10
+	add	esp, 12
 	test	eax, eax
 	jnz	.nextmode		; Error retrieving, go to next mode
 
@@ -725,7 +725,7 @@ proc _SetGraphicsMode
 	push	dword [ebp+.Mode]	; mode
 	push	eax			; af_driver
 	call	[eax+AF_DRIVER.SetVideoMode]
-	add	esp, 26
+	add	esp, 28
 
 	; Use value returned from SetVideoMode() as our return value
 
