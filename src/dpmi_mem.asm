@@ -1,7 +1,7 @@
 ; DPMI Interface - Memory-related Functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: dpmi_mem.asm,v 1.9 2001/04/17 23:40:32 pete Exp $
+; $Id: dpmi_mem.asm,v 1.10 2001/12/03 06:49:07 pete Exp $
 %include "myC32.mac"
 
 %assign MAXMEMHANDLES   16                      ; Maximum number of handles available
@@ -15,7 +15,7 @@ ___sbrk_arglen	equ	4
 
         SECTION .data
 
-rcsid	db	'$Id: dpmi_mem.asm,v 1.9 2001/04/17 23:40:32 pete Exp $',0
+rcsid	db	'$Id: dpmi_mem.asm,v 1.10 2001/12/03 06:49:07 pete Exp $',0
 
 HandleList      times MAXMEMHANDLES dd 0        ; DPMI Memory block handles
 SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to memory blocks
@@ -35,8 +35,21 @@ proc _AllocMem
 .Size           arg     4
 
 	; FIXME: write our own version of this! :)
-	; Note to the curious: see DJGPP/src/libc/crt0/crt0.S to see how
-	;  complex this function really is.
+	; Note to the curious: see DJGPP/src/libc/crt0/crt0.S
+	; to see how complex this function really is.
+
+	; Stupid way to force 64K alignment.  Forces all allocations
+	; to round up to 64K, essentially.
+	; HACK to make sure all allocated buffers can be used with
+	; CopyToScreen() (which requires a buffer 64k-aligned when allocated).
+	invoke	___sbrk, dword 0
+	and	eax, 0FFFFh
+	test	eax, eax
+	jz	.alreadyaligned
+	mov	edx, 10000h
+	sub	edx, eax
+	invoke	___sbrk, edx
+.alreadyaligned:
 	invoke	___sbrk, dword [ebp+.Size]
 	ret
 endproc
