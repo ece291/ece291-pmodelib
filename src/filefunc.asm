@@ -1,0 +1,235 @@
+; File handling functions - Protected mode aware! :)
+;  By Peter Johnson, 1999
+
+%include "myC32.mac"
+%include "dpmi_int.inc"
+
+	BITS	32
+
+	SECTION	.text
+
+;----------------------------------------
+; int OpenFile(char *Filename, short LenFilename, short WriteTo);
+;----------------------------------------
+proc _OpenFile
+
+%$Filename	arg	4		; Filename to open
+%$LenFilename	arg	2		; Length of filename (in bytes)
+%$WriteTo       arg     2               ; Set to 1 to create and open for writing,
+                                        ;  otherwise open for reading.
+
+	push	edi
+	push	esi
+
+	push	es			; First copy filename into transfer buffer
+	mov	es, [_Transfer_Buf]
+	mov	esi, [ebp + %$Filename]
+	xor	edi, edi
+	xor	ecx, ecx
+	mov	cx, [ebp + %$LenFilename]
+	cld
+	rep movsb
+	pop	es
+                
+        cmp     word [ebp+%$WriteTo], 1
+        je      .CreateNew
+	mov	dword [DPMI_EAX], 03D00h	; [DOS] Open Existing File (Read Only)
+        jmp     .DoOpen
+.CreateNew:
+        mov     dword [DPMI_EAX], 03C00h        ; [DOS] Create or Truncate File
+.DoOpen:
+	mov	dword [DPMI_ECX], 0
+	mov	dword [DPMI_EDX], 0
+	mov	bx, 21h
+	call	DPMI_Int
+	test	word [DPMI_FLAGS], 1		; Test the carry flag
+	jne	.error
+
+	mov	eax, [DPMI_EAX]			; Recover file handle
+
+	jmp	.done
+.error:
+	mov	eax, -1
+.done:
+	pop	esi
+	pop	edi
+
+endproc
+
+;----------------------------------------
+; void CloseFile(int Handle);
+;----------------------------------------
+proc _CloseFile
+
+%$Handle	arg	4		; DOS File Handle to close
+
+	mov	ah, 03Eh		; [DOS] Close File
+	mov	ebx, dword [ebp + %$Handle]
+	int	21h
+
+endproc
+
+;----------------------------------------
+; int ReadFile(int Handle, short BufSeg,
+;  void *Buffer, unsigned int Count);
+;----------------------------------------
+proc _ReadFile
+
+%$Handle	arg	4		; DOS File Handle
+%$BufSeg	arg	2		; Selector in which buffer resides
+%$Buffer	arg	4		; Buffer in BufSeg to read into
+%$Count		arg	4		; Number of bytes to read
+
+.NGot		equ	-4		; local storage for total number of bytes read
+.STACK_FRAME_SIZE	equ	4
+
+	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
+	push	esi			; preserve caller's register variables
+	push	edi
+	push	es
+	
+	mov	es, word [ebp + %$BufSeg]	; Set segment to write to (PM data area)
+	mov	edi, dword [ebp + %$Count]	; Move count (of bytes to copy) into register
+	mov	dword [ebp + .NGot], 0		; Set the number of bytes read = 0
+.NextBlock:
+	mov	esi, edi			; If the number of bytes remaining
+	cmp	esi, 16*2048			;  to be read is less than the buffer size,
+	jbe	.DoRead				;  only read that many bytes, otherwise
+	mov	esi, 16*2048			;  read as much as we can (32k)
+.DoRead:
+	mov	dword [DPMI_EAX], 03F00h	; [DOS] Read from file
+	mov	edx, dword [ebp + %$Handle]
+	mov	dword [DPMI_EBX], edx		; Handle to read from
+	mov	dword [DPMI_ECX], esi		; Number of bytes to read
+	mov	dword [DPMI_EDX], 0		; Read into transfer buffer starting at 0
+	mov	bx, 21h
+	call	DPMI_Int
+	test	word [DPMI_FLAGS], 1		; Test the carry flag
+	je	.UpdateCounts
+
+	mov	eax, -1				; Return with error
+	jmp	.Done
+
+.UpdateCounts:
+	sub	edi, esi			; subtract bytes copied from total yet to read
+	mov	ebx, dword [DPMI_EAX]		; get the actual # of bytes read
+	add	dword [ebp + .NGot], ebx	; add to total read
+
+	; Copy into PM memory from RM transfer buffer
+	mov	edx, dword [ebp + %$Buffer]	; Get current pointer into PM destination buffer
+	push	ds
+	mov	ds, word [_Transfer_Buf]	; Set segment to read from (RM transfer buffer)
+	push	edi				; Save registers
+	push	esi
+
+	mov	ecx, ebx			; Grab counter and divide by 4
+	shr	ecx, 1
+	shr	ecx, 1
+	xor	esi, esi			; Start from address 0 in transfer buffer
+	mov	edi, edx			; Pointer into PM destination buffer
+	cld					; Make sure we count upward :)
+	rep	movsd				; Copy 4 bytes at a time!
+
+	pop	esi				; Restore registers
+	pop	edi
+	pop	ds
+
+	add	dword [ebp + %$Buffer], ebx	; Advance PM buffer pointer
+
+	test	edi, edi			; Any bytes left to read? If not, then stop
+	je	.CopyFinish
+	cmp	ebx, esi			; Hit EOF? If not, then read the next block
+	je	near .NextBlock
+
+.CopyFinish:
+	mov	eax, dword [ebp + .NGot]	; Return the number of bytes read
+	
+.Done:
+	pop	es
+	pop	edi				; restore caller's register variables
+	pop	esi
+	mov     esp,ebp				; discard storage for local variables
+
+endproc
+
+;----------------------------------------
+; int WriteFile(int Handle, short BufSeg,
+;  void *Buffer, unsigned int Count);
+;----------------------------------------
+proc _WriteFile
+
+%$Handle	arg	4		; DOS File Handle
+%$BufSeg	arg	2		; Selector in which buffer resides
+%$Buffer	arg	4		; Buffer in BufSeg to read from
+%$Count		arg	4		; Number of bytes to write
+
+.NPut		equ	-4		; local storage for total number of bytes written
+.STACK_FRAME_SIZE	equ	4
+
+	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
+	push	esi			; preserve caller's register variables
+	push	edi
+	push	es
+
+	mov	es, word [_Transfer_Buf]	; Set segment to write to (PM data area)
+	mov	edi, dword [ebp + %$Count]	; Move count (of bytes to copy) into register
+	mov	dword [ebp + .NPut], 0		; Set the number of bytes written = 0
+.NextBlock:
+	mov	esi, edi			; If the number of bytes remaining
+	cmp	esi, 16*2048			;  to be written is less than the buffer size,
+	jbe	.DoWrite			;  only write that many bytes, otherwise
+	mov	esi, 16*2048			;  write as much as we can (32k)
+.DoWrite:
+	; Copy into RM transfer buffer from PM memory
+	mov	edx, dword [ebp + %$Buffer]	; Get current pointer into PM destination buffer
+	push	ds
+	mov	ds, word [ebp + %$BufSeg]	; Set segment to read from (PM memory)
+	push	edi				; Save registers
+	push	esi
+
+	mov	ecx, esi			; Grab counter and divide by 4
+	shr	ecx, 1
+	shr	ecx, 1
+	xor	edi, edi			; Start from address 0 in transfer buffer
+	mov	esi, edx			; Pointer into PM destination buffer
+	cld					; Make sure we count upward :)
+	rep	movsd				; Copy 4 bytes at a time!
+
+	pop	esi				; Restore registers
+	pop	edi
+	pop	ds
+
+	mov	dword [DPMI_EAX], 04000h	; [DOS] Write to file
+	mov	edx, dword [ebp + %$Handle]
+	mov	dword [DPMI_EBX], edx		; Handle to write to
+	mov	dword [DPMI_ECX], esi		; Number of bytes to write
+	mov	dword [DPMI_EDX], 0		; Write out of transfer buffer starting at 0
+	mov	bx, 21h
+	call	DPMI_Int
+	test	word [DPMI_FLAGS], 1		; Test the carry flag
+	je	.UpdateCounts
+
+	mov	eax, -1				; Return with error
+	jmp	.Done
+
+.UpdateCounts:
+	sub	edi, esi			; subtract bytes copied from total yet to write
+	mov	ebx, dword [DPMI_EAX]		; get the actual # of bytes write
+	add	dword [ebp + .NPut], ebx	; add to total written
+	add	dword [ebp + %$Buffer], ebx	; Advance PM buffer pointer
+
+	test	edi, edi			; Any bytes left to write? If not, then stop
+	je	.CopyFinish
+	cmp	ebx, esi			; Error? If not, then write the next block
+	je	near .NextBlock
+
+.CopyFinish:
+	mov	eax, dword [ebp + .NPut]	; Return the number of bytes written
+
+.Done:
+	pop	es
+	pop	edi				; restore caller's register variables
+	pop	esi
+	mov     esp,ebp				; discard storage for local variables
+
+endproc

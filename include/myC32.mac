@@ -1,0 +1,63 @@
+; NASM macro set to make interfacing to 32-bit programs easier
+; Also cool little macros to make NASM emulate some MASM things:
+
+%imacro proc 1			; begin a procedure definition
+%push proc
+          global %1
+%1:       push	ebp
+          mov	ebp, esp
+%assign %$arg 8
+;%assign %$argnum 0
+%define %$procname %1
+%endmacro
+
+%imacro arg 0-1 4		; used with the argument name as a label
+%00	  equ %$arg
+;%assign %$argnum %$argnum+1
+;.arg%$argnum	equ	%1
+%assign %$arg %1+%$arg
+%endmacro
+
+%imacro endproc 0
+%ifnctx proc
+%error Mismatched `endproc'/`proc'
+%else
+	mov	esp, ebp
+	pop	ebp
+	ret
+__end_%$procname:		; useful for calculating function size
+;          global %{$procname}_arglen
+;%{$procname}_arglen	equ	%$arg-8
+;%assign %$i 1
+;%rep %$argnum
+;          global %{$procname}_arg%$i
+;%{$procname}_arg%$i	equ	%{$procname}.arg%$i
+;%assign %$i %$i+1
+;%endrep
+%pop
+%endif
+%endmacro
+
+; invoke calls a C function
+; defaults to word (16 bit) size parameters
+%macro invoke 1-*
+%rotate -1
+;%define invoketype word
+%rep (%0-1)
+;	%ifidni %1,dword
+;		%define invoketype dword
+;	%elifidni %1,word
+;		%define invoketype word
+;	%elifidni %1,byte
+;		%define invoketype byte
+;	%else
+		push %1
+;	%endif
+	%rotate -1
+%endrep
+call %1
+%if (%0!=1)
+	add esp, byte %{1}_arglen
+%endif
+%endmacro
+
