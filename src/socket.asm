@@ -5,7 +5,7 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.7 2001/04/11 18:54:51 pete Exp $
+; $Id: socket.asm,v 1.8 2001/04/11 21:07:19 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "dpmi_int.inc"
@@ -86,7 +86,6 @@ VDD_InitData
 	dd	HOSTENT_ADDRLIST_MAX
 	dd	LastError
 	dd	NetAddr_static
-	dd	HostEnt_static
 	dd	HostEnt_Name_static
 	dd	HostEnt_Aliases_static
 	dd	HostEnt_AddrList_static
