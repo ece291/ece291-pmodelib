@@ -3,7 +3,7 @@
 ;
 ; Primarily saves segment registers and allocates selector to textmode RAM
 ;
-; $Id: lib_load.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
+; $Id: lib_load.asm,v 1.4 2001/03/16 22:43:59 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 %include "dpmi_mem.inc"
@@ -59,7 +59,7 @@ _LibInit
 	mov	[_textsel], ax			; save selector
 	
 	; Alloc "Scratch" Block
-	invoke	_AllocMem, dword 1024*1024
+	invoke	_AllocSelector, dword 1024*1024
 	cmp	ax, -1
 	je	near .error
 	mov	word [_ScratchBlock], ax
@@ -88,7 +88,7 @@ _LibExit
 	invoke	_FreeTransferBuf	
 
 	; Free "Scratch" Block
-	invoke	_FreeMem, word [_ScratchBlock]
+	invoke	_FreeSelector, word [_ScratchBlock]
 	
 	; Restore DJGPP startup selectors
 	mov	ds, [cs:_djgpp_ds]

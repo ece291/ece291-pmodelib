@@ -1,7 +1,7 @@
 ; DPMI Interface - Memory-related Functions
-;  By Peter Johnson, 1999
+;  By Peter Johnson, 1999-2001
 ;
-; $Id: dpmi_mem.asm,v 1.6 2000/12/18 07:28:46 pete Exp $
+; $Id: dpmi_mem.asm,v 1.7 2001/03/16 22:43:48 pete Exp $
 %include "myC32.mac"
 
 %assign MAXMEMHANDLES   16                      ; Maximum number of handles available
@@ -16,13 +16,13 @@ SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to memory blocks
         SECTION .text
 
 ;----------------------------------------
-; short AllocMem(unsigned int Size);
+; short AllocSelector(unsigned int Size);
 ; Purpose: Allocates a memory block of Size bytes.
 ; Inputs:  Size, the size (in bytes) of the memory block to allocate.
 ; Outputs: AX=selector for the memory block, or -1 on error.
 ; Notes:   Can only allocate a maximum of MAXMEMHANDLES blocks.
 ;----------------------------------------
-proc _AllocMem
+proc _AllocSelector
 
 .Size           arg     4
 
@@ -114,12 +114,12 @@ proc _AllocMem
 endproc
 
 ;----------------------------------------
-; void FreeMem(unsigned short Selector);
+; void FreeSelector(unsigned short Selector);
 ; Purpose: Frees a memory block allocated by AllocMem().
 ; Inputs:  Selector, the selector of the memory block to free.
 ; Outputs: None
 ;----------------------------------------
-proc _FreeMem
+proc _FreeSelector
 
 .Selector	arg     2
 
