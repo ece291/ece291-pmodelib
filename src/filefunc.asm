@@ -1,7 +1,7 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: filefunc.asm,v 1.15 2001/03/17 04:52:00 pete Exp $
+; $Id: filefunc.asm,v 1.16 2001/04/07 04:50:27 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -37,6 +37,7 @@ proc _OpenFile
 	inc	edi
 	or	al, al
 	jnz	.Copy
+	pop	es
 
 	; First try using LFN services
 	mov	word [DPMI_EAX], 716Ch	; [Windows95] LFN - Create or Open File
