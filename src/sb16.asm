@@ -5,12 +5,19 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.5 2001/04/06 16:19:57 mu Exp $
+; $Id: sb16.asm,v 1.6 2001/04/07 20:52:00 mu Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
 %include "int_wrap.inc"
 %include "dpmi_mem.inc"
+
+; for whatever reason, i can't seem to duplicate the C from DMAW.C of
+; V:\ece291\utils\SoundBlaster Development\samples\dmaw\dmaw.c
+%define USE_SB16_PROGRAMMING	0
+; So for now, use SBPRO style programming.  Yes, this limits us to 8 bit
+; sound, as i refuse to bother with the SBPRO 16bit hack.
+%define USE_SBPRO_PROGRAMMING	1
 
 extern _getenv
 _getenv_arglen			equ	4
@@ -101,9 +108,9 @@ SB16_Active	dd	0	; on zero, safe to change config
 
 SB16_Bits	db	0
 SB16_SampleRate	db	0
+SB16_TimeConst	db	0
 SB16_Stereo	db	0
 
-SB16_OrigISR
 SB16_DSPVer	db	0
 
 _SB16_LockData_End
@@ -165,9 +172,13 @@ _SB16_Init_arglen		equ	4
 proc _SB16_Exit
 
 	; TODO stop sounds if playing.
-	; TODO skip if not installed
+	; TODO skip if not installed?
 	; TODO mute speakers? out(SB16_IO+0Ch, 0D3h)
 
+	cmp	dword [SB16_Active], 0
+	jz	.notactive
+	invoke	_SB16_Stop
+.notactive
 	mov	ecx, SB_UNINSTALLED
 	or	[SB16_Status], ecx
 
@@ -206,36 +217,50 @@ proc _SB16_Start
 
 	cmp	dword[SB16_Status], 0	; verify SB is ready
 	jnz	near .fail
-	cmp	dword[SB16_Active], 0
-	jnz	near .fail
 
 	dec	dword [ebp+.Size]
 	cmp	dword [ebp+.Size], 0FFFFh	; only accept real sizes
 	ja	near .fail
 
-%if 1	; works, if limited to 8 bit.... :/
+%if USE_SBPRO_PROGRAMMING	; works, if limited to 8 bit.... :/
 
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_TIME_CONSTANT
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword 165
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_TimeConst]
 	
 	cmp	dword [ebp+.AutoInit], 0
 	jz	.singlecycle
 
+; auto init takes the blocksize constant, followed by length, followed
+; by 1ch or 2ch for playing or recording respectively.
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_BLOCK_SIZE
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+0]
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword 01Ch
+	mov	eax, 01ch
+	cmp	dword [ebp+.Write], 0
+	jz	.notwriteAI
+	add	eax, 010h
+.notwriteAI
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, eax
 	xor	eax, eax
-	jmp	short .ret
+	jmp	short .play
 
+; single cycle is a bit different. 14h or 24h, followed by length
 .singlecycle
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword 014h
+	mov	eax, 014h
+	cmp	dword [ebp+.Write], 0
+	jz	.notwriteSC
+	add	eax, 010h
+.notwriteSC
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, eax
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+0]
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
 	xor	eax, eax
-	jmp	short .ret
+	jmp	short .play
 
-%elif 1	; makes the speaker do weird things.
+%elif USE_SB16_PROGRAMMING
+	; makes the speaker do weird things.  I don't know why.
+	; i really really think this is the same as dmaw.c
+	; vdmsound, at least, does not.  unfortunately, it's probably right.
 	; set sample rate
 	mov	eax, DSP_WRITE_SAMPLE_RATE
 	cmp	dword [ebp+.Write], 0
@@ -279,9 +304,12 @@ proc _SB16_Start
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
 
 	xor	eax, eax
-	jmp	.ret
-%endif
+	jmp	short .play
+%endif	; USE_x_PROGRAMMING
 
+.play 
+	or	dword[SB16_Active], 1
+	jmp	short .ret
 .fail
 	xor	eax, eax
 	inc	eax
@@ -298,7 +326,6 @@ _SB16_Start_arglen		equ	12
 ;----------------------------------------
 proc _SB16_Stop
 
-	; TODO: FIXME
 	cmp	byte [SB16_Bits], 8
 	jne	.16bits
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB8_AUTOINIT_STOP
@@ -307,7 +334,9 @@ proc _SB16_Stop
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB16_AUTOINIT_STOP
 
 .done
-	; dword 0D0h
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_HALT_SINGLE_CYCLE_DMA
+	xor	eax, eax
+	and	dword[SB16_Active], ~1
 
 	ret
 endproc
@@ -343,9 +372,6 @@ proc _SB16_SetFormat
 .SampleRate	arg	4
 .Stereo		arg	4
 
-	; TODO: consider
-	;  - removing the sanity checks
-
 	mov	eax, [SB16_Active]
 	test	eax, eax
 	jnz	.fail
@@ -355,9 +381,11 @@ proc _SB16_SetFormat
 	mov	ecx, [ebp+.Stereo]
 
 	; accept 8 or 16
-	cmp	eax, 8
-	je	.bits
+%if USE_SB16_PROGRAMMING	; don't accept SBPRO only 16bit sources
 	cmp	eax, 16
+	je	.bits
+%endif
+	cmp	eax, 8
 	jne	.fail
 .bits
 	mov	[SB16_Bits], al
@@ -365,7 +393,15 @@ proc _SB16_SetFormat
 	; accept < 65536
 	cmp	ebx, 0FFFFh
 	ja	.fail
+%if USE_SB16_PROGRAMMING
 	mov	[SB16_SampleRate], ebx
+%elif USE_SBPRO_PROGRAMMING
+	mov	eax, 1000000
+	xor	edx, edx
+	div	ebx
+	neg	al	; al = 256 - 1e6 / sample rate
+	mov	[SB16_TimeConst], al
+%endif
 
 	; treat as zero=mono/nonzero=stereo
 	test	ecx, ecx
@@ -387,31 +423,23 @@ endproc
 _SB16_SetFormat_arglen		equ	12
 
 ;----------------------------------------
-; bool SB16_SetMixers(short Master, short PCM, short FM, short CD, short Line, short Mic)
+; bool SB16_SetMixers(short Master, short PCM, short Line, short Mic)
 ; Purpose: Sets the mixers to provided volume levels
 ; Inputs:  Master, overall volume.  Speakers off if zero.
 ;	   PCM, volume for pcm data (wavs)
-;	   FM, volume for fm synth (midi)
-;	   CD, volume for CD audio
 ;	   Line, volume for data line
 ;	   Mic, volume for Mic input
-;	   0 is minimum volume, 63 is maximum.	; TODO: checkme
-;	   If MSB (80h) set, that mixer will not be changed.
+;	   Setting the master to zero or nonzero will off or on the speakers
 ; Outputs: On error, eax=1, else eax=0
 ;----------------------------------------
 proc _SB16_SetMixers
 
-	;TODO: FIXME: WRITEME
 .Master		arg	2
 .PCM		arg	2
-.FM		arg	2
-.CD		arg	2
 .Line		arg	2
 .Mic		arg	2
 
 	mov	al, [ebp+.Master]
-	test	al, 80h
-	jnz	.pcm
 	test	al, al
 	jz	.master_off
 	mov	dx, [SB16_IO]
@@ -436,68 +464,43 @@ proc _SB16_SetMixers
 	add	dx, DSP_MIXER_DATA-DSP_MIXER_ADDR
 	out	dx, al
 .pcm
-	mov	al, [ebp+.PCM]
-	test	al, 80h
-	jnz	.fm
-	push	ax
 	invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_VOICE
-	pop	ax
+	mov	al, [ebp+.PCM]
 	invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
-.fm
-	;mov	al, [ebp+.FM]
-	;test	al, 80h
-	;jnz	.cd
-	;push	ax
-	;invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_FM
-	;pop	ax
-	;invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
-;.cd
-	;mov	al, [ebp+.CD]
-	;test	al, 80h
-	;jnz	.line
-	;push	ax
-;invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_CD
-	;pop	ax
-	;invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
-.;line
-	mov	al, [ebp+.Line]
-	test	al, 80h
-	jnz	.mic
-	push	ax
+.line
 	invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_LINE
-	pop	ax
+	mov	al, [ebp+.Line]
 	invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
 .mic
-	mov	al, [ebp+.Mic]
-	test	al, 80h
-	jnz	.done
-	push	ax
 	invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_MIC
-	pop	ax
+	mov	al, [ebp+.Mic]
 	invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
 .done
 	xor	eax, eax
 	ret
 endproc
-_SB16_SetMixers_arglen		equ	12
+_SB16_SetMixers_arglen		equ	8
 
 ;----------------------------------------
 ; long SB16_GetChannel()
-; Purpose: Returns SB16 DMA as probed.
+; Purpose: Returns SB16 DMAs as probed.
 ; Inputs:  None
 ; Outputs: On error, eax=FFFFFFFF, else ah=16 bit DMA, al=8 bit DMA
+; Note: ah is being ignored; only trust al until SB16 stuff works
 ;----------------------------------------
 proc _SB16_GetChannel
 
+	xor	eax, eax
 	test	dword [SB16_Status], dword SB_NOENV
 	jnz	.error
 
+%if USE_SB16_PROGRAMMING
 	mov	ah, [SB16_DMA_High]
+%endif
 	mov	al, [SB16_DMA_Low]
 	jmp	.ret
 
 .error
-	xor	eax, eax
 	dec	eax
 .ret
 	ret
@@ -540,13 +543,18 @@ proc _SB16_GetEnv
 
 	cmp	bl, 0Fh
 	je	.done
-	cmp	dl, ' '
-	jne	.fail
+	cmp	dl, 0
+	jne	.done
 
 	inc	eax
 	jmp	.FindSettingsLoop
 
 .done
+	cmp	bl, 07h
+	je	.ok
+	cmp	bl, 0Fh
+	jne	.fail
+.ok
 	xor	eax, eax
 	and	dword [SB16_Status], dword ~SB_NOENV
 	ret
@@ -666,8 +674,6 @@ endproc
 ;----------------------------------------
 proc _SB16_InstallISR
 .ISR	arg	4
-	; TODO: FIXME: check returns and set eax appropriately (for fail
-	; case)
 
 	mov	edx, [ebp+.ISR]
 	test	edx, edx
@@ -735,7 +741,6 @@ SB16_ISR
 
         cmp     dword [SB16_Callback], 0
         je      .done
-	; TODO: CHECKME (call)
         call    dword [SB16_Callback]	; call user callback
 
 .done

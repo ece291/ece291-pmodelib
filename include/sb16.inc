@@ -1,7 +1,7 @@
 ; SB16 interface code
 ;  By Michael Urman, 2001
 ;
-; $Id: sb16.inc,v 1.1 2001/04/03 04:39:34 mu Exp $
+; $Id: sb16.inc,v 1.2 2001/04/07 20:52:00 mu Exp $
 
 	EXTERN	_SB16_Init
 	EXTERN	_SB16_Exit
@@ -17,4 +17,4 @@ _SB16_Init_arglen		equ	4
 _SB16_Start_arglen		equ	12
 _SB16_SetCallback_arglen	equ	4
 _SB16_SetFormat_arglen		equ	12
-_SB16_SetMixers_arglen		equ	12
+_SB16_SetMixers_arglen		equ	8
