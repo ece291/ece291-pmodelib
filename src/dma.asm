@@ -6,7 +6,7 @@
 ;	- MikMod
 ;	- GUS SDK (!)
 ;
-; $Id: dma.asm,v 1.6 2001/04/17 23:40:32 pete Exp $
+; $Id: dma.asm,v 1.7 2001/04/18 18:43:36 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -78,7 +78,7 @@ DMA7_PAGE       equ     8Ah             ; chan 7 page register
 
         SECTION .data
 
-rcsid	db	'$Id: dma.asm,v 1.6 2001/04/17 23:40:32 pete Exp $',0
+rcsid	db	'$Id: dma.asm,v 1.7 2001/04/18 18:43:36 pete Exp $',0
 
 	ALIGN 4
 mydma
@@ -197,10 +197,10 @@ DMA_Start_Funcs         ; Mark the beginning of code area to lock
 ; bool DMA_Allocate_Mem(int Size, short *Selector, unsigned long *LinearAddress)
 ; Purpose: Allocates the specified amount of conventional memory, ensuring that
 ;          the returned block doesn't cross a page boundary.
-; Inputs:  Size, size (in bytes) to allocate for the DMA butter
+; Inputs:  Size, size (in bytes) to allocate for the DMA buffer
 ; Outputs: Selector, the selector that should be used to free the block
 ;          LinearAddress, the linear address of the block
-;          On error, eax=1, Selector=LinearAddress=0.
+;          On error, returns 1 and sets Selector=LinearAddress=0.
 ;----------------------------------------
 proc _DMA_Allocate_Mem
 
@@ -257,11 +257,12 @@ proc _DMA_Allocate_Mem
 endproc
 
 ;----------------------------------------
-; void DMA_Start(int Channel, unsigned long Address, int Size, bool auto_init, bool Write)
+; void DMA_Start(int Channel, unsigned long Address, int Size, bool auto_init,
+;  bool Write)
 ; Purpose: Starts the DMA controller for the specified channel, transferring
-;          size bytes from addr (the block must not cross a page boundary).
+;          Size bytes from Address (the block must not cross a page boundary).
 ; Inputs:  Channel, DMA channel to start controller on
-;          Address, linear address to transfer data from
+;          Address, linear address to transfer data from/to
 ;          Size, number of bytes to transfer
 ;          auto_init, if set, use the endless repeat DMA mode
 ;          Write, if set, use write mode, otherwise use read mode
@@ -385,10 +386,10 @@ endproc
 
 ;----------------------------------------
 ; unsigned long DMA_Todo(int Channel)
-; Purpose: Returns the current position in a DMA transfer. Interrupts should be
+; Purpose: Gets the current position in a DMA transfer. Interrupts should be
 ;          disabled before calling this function.
 ; Inputs:  Channel, the channel to get the position of
-; Outputs: The current position in the selected channel
+; Outputs: Returns the current position in the selected channel.
 ;----------------------------------------
 proc _DMA_Todo
 
