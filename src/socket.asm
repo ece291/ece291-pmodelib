@@ -5,9 +5,10 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.3 2001/04/03 02:07:02 pete Exp $
+; $Id: socket.asm,v 1.4 2001/04/04 20:49:52 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
+%include "dpmi_int.inc"
 
 	BITS	32
 
@@ -115,34 +116,35 @@ _InitSocket
 	xor	ecx, ecx
 	mov	dx, 0FFFFh
 	int	31h
-	jc	.errorfree
+	jc	near .errorfree
 
 	xor	eax, eax		; AH=mpx #00h, AL=func 00h (instlchk)
 
 .loop:
-	mov	si, ax			; save ax
-
-	int	2Dh			; check if INT 2D/AH=xx is in use
-	cmp	al, 0FFh		; multiplex number in use?
+	mov	esi, eax		; Save ax
+	mov	[DPMI_EAX], eax
+	push	bx
+	mov	bx, 2Dh			; check if INT 2D/AH=xx is in use
+	call	DPMI_Int
+	pop	bx
+	cmp	byte [DPMI_EAX], 0FFh	; multiplex number in use?
 	jne	.next
 
 	; Check version
-	cmp	cx, ALTMPX_MinVersion
+	cmp	word [DPMI_ECX], ALTMPX_MinVersion
 	jb	.next
 
 	; DX:DI holds segment:offset of signature string
 	mov	ax, 0007h		; [DPMI 0.9] Set Segment Base Address
-	movzx	edx, dx			; convert segment to linear addr CX:DX
+	movzx	edx, word [DPMI_EDX]	; convert segment to linear addr CX:DX
 	shl	edx, 4
 	mov	ecx, edx
 	shr	ecx, 16
 	int	31h
 	jc	.errorfree
 
-	mov	ax, si			; restore ax
-
 	mov	es, ebx			; reload selector just in case
-	movzx	edi, di			; zero top half of edi for cmpsw
+	movzx	edi, word [DPMI_EDI]	; zero top half of edi for cmpsw
 	mov	ecx, 16/2		; length of signature string
 	mov	esi, ALTMPX_Signature
 	rep	cmpsw			; did we get our signature?
@@ -156,16 +158,20 @@ _InitSocket
 
 .foundmpx:
 	; Free the descriptor
-	mov	si, ax
 	mov	ax, 0001h		; [DPMI 0.9] Free LDT Descriptor
 	int	31h
-	mov	ax, si
 
 	; Get VDD handle
+	mov	eax, [DPMI_EAX]
 	mov	al, 10h			; [EX291 MPX] Get VDD Handle
-	int	2Dh
-	cmp	al, 1
+	mov	[DPMI_EAX], ax
+	push	bx
+	mov	bx, 2Dh
+	call	DPMI_Int
+	pop	bx
+	cmp	byte [DPMI_EAX], 1
 	jne	.error
+	mov	dx, [DPMI_EDX]
 	mov	[VDD_Handle], dx
 
 	; Initialize WinSock
