@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.15 2001/03/19 07:30:01 pete Exp $
+; $Id: vbeaf.asm,v 1.16 2001/03/19 19:38:13 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -424,7 +424,13 @@ proc _InitGraphics
 	mov	ecx, 256
 	mov	esi, eax
 	mov	edi, Filename
-	rep	movsb
+.envcopy:
+	mov	al, [esi]
+	mov	[edi], al
+	inc	esi
+	inc	edi
+	or	al, al
+	jnz	.envcopy
 
 	; Append / if no ending slash present
 	dec	edi
@@ -432,7 +438,6 @@ proc _InitGraphics
 	je	.slashpresent
 	cmp	byte [edi], '\'
 	je	.slashpresent
-	inc	edi
 	mov	byte [edi], '/'
 .slashpresent:
 	; Append "vbeaf.drv"
