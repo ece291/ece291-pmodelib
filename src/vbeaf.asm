@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.8 2001/03/17 20:41:07 pete Exp $
+; $Id: vbeaf.asm,v 1.9 2001/03/17 20:48:32 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -647,11 +647,10 @@ proc _FindGraphicsMode
 	je	.notfound
 
 	; Get mode info block
-	mov	ebx, [esi+AF_DRIVER.GetVideoModeInfo]
 	push	dword ModeInfo
 	push	word [edi]
 	push	esi
-	call	[ebx]
+	call	[esi+AF_DRIVER.GetVideoModeInfo]
 	add	esp, 10
 	test	eax, eax
 	jnz	.nextmode		; Error retrieving, go to next mode
@@ -714,7 +713,6 @@ proc _SetGraphicsMode
 	mov	es, [_djgpp_es]
 
 	mov	eax, [DriverOffset]
-	mov	ebx, [eax+AF_DRIVER.SetVideoMode]
 	xor	ecx, ecx
 	push	ecx			; NULL for crtc pointer
 	inc	ecx
@@ -726,7 +724,7 @@ proc _SetGraphicsMode
 	push	ecx			; virtual width
 	push	word [ebp+.Mode]	; mode
 	push	eax			; af_driver
-	call	[ebx]
+	call	[eax+AF_DRIVER.SetVideoMode]
 	add	esp, 26
 
 	; Use value returned from SetVideoMode() as our return value
@@ -767,7 +765,7 @@ _UnsetGraphicsMode
 	test	edi, edi
 	jz	.noEDA
 	push	esi
-	call	[edi]
+	call	edi
 	add	esp, 4
 .noEDA:
 	; Wait Until Idle
@@ -775,7 +773,7 @@ _UnsetGraphicsMode
 	test	edi, edi
 	jz	.noWTI
 	push	esi
-	call	[edi]
+	call	edi
 	add	esp, 4
 .noWTI:
 	; Restore Text Mode
