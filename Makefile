@@ -1,7 +1,7 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.17 2001/10/17 20:54:50 pete Exp $
+# $Id: Makefile,v 1.18 2001/10/23 17:26:41 pete Exp $
 
 # set some useful paths
 OBJ = obj
@@ -20,7 +20,7 @@ PROGRAMS = $(addsuffix .exe, $(addprefix examples/, $(PROGRAMS_BASE)))
 
 OBJS = lib_load.o vbeaf.o textmode.o gfxfiles.o filefunc.o socket.o \
        dpmi_int.o dpmi_mem.o int_wrap.o rmcbwrap.o netbios.o misc.o \
-       dma.o sb16.o
+       dma.o sb16.o loadpng.o jpg.o
 
 COBJS = readpng.o readjpg.o
 
