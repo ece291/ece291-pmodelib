@@ -5,7 +5,7 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.1 2001/04/01 23:55:17 pete Exp $
+; $Id: socket.asm,v 1.2 2001/04/02 21:27:36 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -422,13 +422,14 @@ endproc
 ; Inputs:  Address, Internet host address to convert.
 ; Outputs: Returns pointer to a static buffer containing the network address in
 ;           standard "." notation.  This buffer is overwritten on subsequent
-;           calls to this function.  Returns 0 on error.
+;           calls to this function.
 ;----------------------------------------
 proc _Socket_inet_ntoa
 
 .Address	arg	4
 
 	callvdd	SOCKET_INETNTOA
+	mov	eax, NetAddr_static
 	ret
 endproc
 
