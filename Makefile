@@ -1,15 +1,16 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.18 2001/10/23 17:26:41 pete Exp $
+# $Id: Makefile,v 1.19 2001/12/12 07:12:09 pete Exp $
 
 # set some useful paths
 OBJ = obj
 LIB = lib291.a
+TMPLIB = lib291t.a
 
 LFLAGS =
 ASMFLAGS = -f coff -iinclude/
-CFLAGS = -I$(EXTLIBS)/lpng108 -I$(EXTLIBS)/zlib -I$(EXTLIBS)/jpeg-6b
+CFLAGS = -I$(EXTLIBS)/lpng -I$(EXTLIBS)/zlib -I$(EXTLIBS)/jpeg-6b
 
 VPATH = examples src src_c
 
@@ -24,23 +25,34 @@ OBJS = lib_load.o vbeaf.o textmode.o gfxfiles.o filefunc.o socket.o \
 
 COBJS = readpng.o readjpg.o
 
-LIBOBJS = $(EXTLIBS)/lpng108/libpng.a \
-          $(EXTLIBS)/zlib/libz.a \
-          $(EXTLIBS)/jpeg-6b/libjpeg.a
+EXTLIBOBJS = $(EXTLIBS)/lpng/libpng.a \
+             $(EXTLIBS)/zlib/libz.a \
+             $(EXTLIBS)/jpeg-6b/libjpeg.a
 
-LIB_OBJS = $(addprefix $(OBJ)/, $(OBJS)) $(addprefix $(OBJ)/, $(COBJS)) \
-           $(LIBOBJS)
+LIBOBJS = $(addprefix $(OBJ)/, $(OBJS)) $(addprefix $(OBJ)/, $(COBJS))
 
 .PRECIOUS: $(OBJ)/%.o
 
 .PHONY: all msg libobjs lib clean veryclean
 
-all: $(LIB) $(PROGRAMS)
+all: lib $(PROGRAMS)
 	@echo All done.
 
-libobjs: $(LIB_OBJS)
+arscript: $(TMPLIB) $(EXTLIBOBJS)
+	@echo "CREATE $(LIB)" >$@
+	@echo "ADDLIB $(TMPLIB)" >>$@
+	@echo "ADDLIB $(EXTLIBS)/lpng/libpng.a" >>$@
+	@echo "ADDLIB $(EXTLIBS)/zlib/libz.a" >>$@
+	@echo "ADDLIB $(EXTLIBS)/jpeg-6b/libjpeg.a" >>$@
+	@echo "SAVE" >>$@
+
+$(LIB): arscript
+	ar -M <arscript
+	-del arscript
+	-del $(TMPLIB)
 
 lib: $(LIB)
+	ranlib $(LIB)
 
 $(OBJ)/%.o: %.asm
 	nasm $(ASMFLAGS) -o $@ $< -l list/$*.lst
@@ -51,15 +63,18 @@ $(OBJ)/%.o: %.c
 */%.exe: $(OBJ)/%.o $(LIB)
 	gcc $(LFLAGS) -o $@ $< $(LIB)
 
-$(LIB)(%): %
-	ar cr $(LIB) $<
+$(TMPLIB)(%): %
+	ar cr $(TMPLIB) $<
 
-$(LIB): $(LIB)($(LIB_OBJS))
-	ranlib $(LIB)
+$(TMPLIB): $(TMPLIB)($(LIBOBJS))
 
 clean:
-	rm -f obj/*.o lib291.a list/*.lst
+	-del obj\*.o
+	-del lib291.a
+	-del list\*.lst
+	-del lib291t.a
+	-del arscript
 
 veryclean: clean
-	rm -f examples/*.exe
+	-del examples\*.exe
 
