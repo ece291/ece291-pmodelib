@@ -1,7 +1,7 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: filefunc.asm,v 1.18 2001/04/17 23:40:32 pete Exp $
+; $Id: filefunc.asm,v 1.19 2001/04/24 18:37:04 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -9,7 +9,7 @@
 
 	SECTION .data
 
-rcsid	db	'$Id: filefunc.asm,v 1.18 2001/04/17 23:40:32 pete Exp $',0
+rcsid	db	'$Id: filefunc.asm,v 1.19 2001/04/24 18:37:04 pete Exp $',0
 
 	SECTION .text
 
@@ -45,14 +45,15 @@ proc _OpenFile
 
 	; First try using LFN services
 	mov	word [DPMI_EAX], 716Ch	; [Windows95] LFN - Create or Open File
-	mov	word [DPMI_EBX], 42h	; Commit after every write, read-write
 	mov	word [DPMI_ECX], 0	; Attributes
 	cmp	word [ebp + .WriteTo], 1
 	je	.CreateNewLFN
 	mov	word [DPMI_EDX], 1	; Open file
+	mov	word [DPMI_EBX], 4	; Open read-only
 	jmp	short .DoOpenLFN
 .CreateNewLFN:
 	mov	word [DPMI_EDX], 2	; Truncate if already exists
+	mov	word [DPMI_EBX], 2	; Open read-write
 .DoOpenLFN:
 	mov	word [DPMI_ESI], 0	; DS:SI = filename
 	mov	word [DPMI_EDI], 0	; Hint number
