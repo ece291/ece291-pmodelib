@@ -5,7 +5,7 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.2 2001/04/02 21:27:36 pete Exp $
+; $Id: socket.asm,v 1.3 2001/04/03 02:07:02 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -613,6 +613,10 @@ proc _Socket_gethostbyaddr
 .Address	arg	4
 
 	callvdd	SOCKET_GETHOSTBYADDR
+	test	eax, eax
+	jz	.done
+	mov	eax, HostEnt_static
+.done:
 	ret
 endproc
 
@@ -628,6 +632,10 @@ proc _Socket_gethostbyname
 .Name		arg	4
 
 	callvdd	SOCKET_GETHOSTBYNAME
+	test	eax, eax
+	jz	.done
+	mov	eax, HostEnt_static
+.done:
 	ret
 endproc
 
