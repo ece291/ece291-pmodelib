@@ -25,3 +25,20 @@
 	EXTERN	_Transfer_Buf_Seg
 	EXTERN	_Transfer_Buf_Size
 
+DPMI_EDI_off    equ     00h
+DPMI_ESI_off    equ     04h
+DPMI_EBP_off    equ     08h
+;DPMI_RES0_off  equ     0Ch
+DPMI_EBX_off    equ     10h
+DPMI_EDX_off    equ     14h
+DPMI_ECX_off    equ     18h
+DPMI_EAX_off    equ     1Ch
+DPMI_FLAGS_off  equ     20h
+DPMI_ES_off     equ     22h
+DPMI_DS_off     equ     24h
+DPMI_FS_off     equ     26h
+DPMI_GS_off     equ     28h
+DPMI_IP_off     equ     2Ah
+DPMI_CS_off     equ     2Ch
+DPMI_SP_off     equ     2Eh
+DPMI_SS_off     equ     30h

@@ -5,9 +5,12 @@
 
 %include "constant.inc"
 %include "globals.inc"
+%include "cb_hand.inc"
+%include "dma.inc"
 %include "dpmi_int.inc"
 %include "dpmi_mem.inc"
 %include "file_func.inc"
 %include "gfx_files.inc"
+%include "int_hand.inc"
 %include "textmode.inc"
 %include "vesa.inc"

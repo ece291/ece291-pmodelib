@@ -198,8 +198,8 @@ proc _Install_Int
         mov     ax, 0204h               ; [DPMI 0.9] Get Protected Mode Interrupt Vector
         int     31h
         pop     ebx                     ; Get wrapper # back into ebx
-        mov     [_OldIntVectors+ebx*4], edx     ; Save offset
-        mov     [_OldIntVectors+ebx*4+4], cx    ; Save selector
+        mov     [_OldIntVectors+ebx*8], edx     ; Save offset
+        mov     [_OldIntVectors+ebx*8+4], cx    ; Save selector
 
         ; Set new interrupt vector
         mov     ax, 0205h               ; [DPMI 0.9] Set Protected Mode Interrupt Vector
