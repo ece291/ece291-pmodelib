@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.2 2001/03/02 08:18:12 pete Exp $
+; $Id: vbeaf.asm,v 1.3 2001/03/16 22:58:30 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "filefunc.inc"
@@ -307,7 +307,7 @@ proc _LoadGraphicsDriver
 	mov	[DriverOffset], eax
 
 	; Read in driver
-	invoke	_ReadFile, dword [ebp+.file], ds, dword [DriverOffset], dword [ebp+.size]
+	invoke	_ReadFile, dword [ebp+.file], dword [DriverOffset], dword [ebp+.size]
 	cmp	eax, [ebp+.size]
 	jne	.errorfree
 

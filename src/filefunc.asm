@@ -1,9 +1,9 @@
 ; File handling functions
-;  By Peter Johnson, 1999
+;  By Peter Johnson, 1999-2001
 ;
 ; String handling simplifications in _OpenFile (repnz) by Jason Galliccho.
 ;
-; $Id: filefunc.asm,v 1.10 2001/03/10 19:49:13 pete Exp $
+; $Id: filefunc.asm,v 1.11 2001/03/16 22:58:20 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -80,18 +80,37 @@ proc _CloseFile
 endproc
 
 ;----------------------------------------
-; int ReadFile(int Handle, short BufSeg, void *Buffer, unsigned int Count);
+; int ReadFile(int Handle, void *Buffer, unsigned int Count);
 ; Purpose: Reads from a file.
 ; Inputs:  Handle, DOS handle of the file to read from
-;	   BufSeg, selector in which Buffer resides
-;	   Buffer, pointer (into BufSeg) of buffer to read into
+;	   Buffer, buffer to read into
 ;	   Count, number of bytes to read into buffer
 ; Outputs: Number of bytes actually read
 ;----------------------------------------
 proc _ReadFile
 
 .Handle		arg	4
-.BufSeg		arg	2
+.Buffer		arg	4
+.Count		arg	4
+
+	invoke	_ReadFile_Sel, dword [ebp+.Handle], ds, dword [ebp+.Buffer], dword [ebp+.Count]
+	ret
+endproc
+
+;----------------------------------------
+; int ReadFile_Sel(int Handle, short BufSel, void *Buffer, unsigned int Count);
+; Purpose: Reads from a file.
+; Inputs:  Handle, DOS handle of the file to read from
+;	   BufSel, selector in which Buffer resides
+;	   Buffer, pointer (into BufSeg) of buffer to read into
+;	   Count, number of bytes to read into buffer
+; Outputs: Number of bytes actually read
+;----------------------------------------
+_ReadFile_Sel_arglen	equ	14
+proc _ReadFile_Sel
+
+.Handle		arg	4
+.BufSel		arg	2
 .Buffer		arg	4
 .Count		arg	4
 
@@ -106,7 +125,7 @@ proc _ReadFile
 	mov	ax, [_Transfer_Buf_Seg]
 	mov	[DPMI_DS], ax
 
-	mov	es, [ebp + .BufSeg]	; Set segment to write to (PM data area)
+	mov	es, [ebp + .BufSel]	; Set segment to write to (PM data area)
 	mov	edi, [ebp + .Count]	; Move count (of bytes to copy) into register
 	mov	dword [ebp + .NGot], 0	; Set the number of bytes read = 0
 .NextBlock:
@@ -176,18 +195,37 @@ proc _ReadFile
 endproc
 
 ;----------------------------------------
-; int WriteFile(int Handle, short BufSeg, void *Buffer, unsigned int Count);
+; int WriteFile(int Handle, void *Buffer, unsigned int Count);
 ; Purpose: Writes to a file.
 ; Inputs:  Handle, DOS handle of the file to write to
-;	   BufSeg, selector in which Buffer resides
-;	   Buffer, pointer (in BufSeg) of buffer to read from
+;	   Buffer, buffer to read from
 ;	   Count, number of bytes to write out to the file
 ; Outputs: Number of bytes actually written
 ;----------------------------------------
 proc _WriteFile
 
 .Handle		arg	4
-.BufSeg		arg	2
+.Buffer		arg	4
+.Count		arg	4
+
+	invoke	_WriteFile_Sel, dword [ebp+.Handle], ds, dword [ebp+.Buffer], dword [ebp+.Count]
+	ret
+endproc
+
+;----------------------------------------
+; int WriteFile_Sel(int Handle, short BufSel, void *Buffer, unsigned int Count);
+; Purpose: Writes to a file.
+; Inputs:  Handle, DOS handle of the file to write to
+;	   BufSel, selector in which Buffer resides
+;	   Buffer, pointer (in BufSeg) of buffer to read from
+;	   Count, number of bytes to write out to the file
+; Outputs: Number of bytes actually written
+;----------------------------------------
+_WriteFile_Sel_arglen	equ	14
+proc _WriteFile_Sel
+
+.Handle		arg	4
+.BufSel		arg	2
 .Buffer		arg	4
 .Count		arg	4
 
@@ -214,7 +252,7 @@ proc _WriteFile
 	; Copy into RM transfer buffer from PM memory
 	mov	edx, [ebp + .Buffer]	; Get current pointer into PM destination buffer
 	push	ds
-	mov	ds, [ebp + .BufSeg]	; Set segment to read from (PM memory)
+	mov	ds, [ebp + .BufSel]	; Set segment to read from (PM memory)
 	push	edi			; Save registers
 	push	esi
 

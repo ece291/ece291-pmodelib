@@ -1,7 +1,7 @@
 ; Various file loading functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: gfxfiles.asm,v 1.8 2001/03/16 22:36:41 pete Exp $
+; $Id: gfxfiles.asm,v 1.9 2001/03/16 22:58:24 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "globals.inc"
@@ -14,7 +14,25 @@
 	SECTION .text
 
 ;----------------------------------------
-; bool LoadBMP(char *Name, short Wheresel, void *Where)
+; bool LoadBMP(char *Name, void *Where)
+; Purpose: Reads a 8 or 24-bit BMP file into a 32-bit buffer.
+; Inputs:  Name, (path)name of the BMP file
+;	   Where, buffer to read image into
+; Outputs: 1 on error, otherwise 0
+; Notes:   Assumes destination is big enough to hold loaded 32-bit image.
+;          Doesn't return size of loaded image (width x height).
+;----------------------------------------
+proc _LoadBMP
+
+.Name		arg	4
+.Where		arg	4
+
+	invoke	_LoadBMP_Sel, dword [ebp+.Name], ds, dword [ebp+.Where]
+	ret
+endproc
+
+;----------------------------------------
+; bool LoadBMP_Sel(char *Name, short Wheresel, void *Where)
 ; Purpose: Reads a 8 or 24-bit BMP file into a 32-bit buffer.
 ; Inputs:  Name, (path)name of the BMP file
 ;	   Wheresel, selector in which Where resides
@@ -23,11 +41,12 @@
 ; Notes:   Assumes destination is big enough to hold loaded 32-bit image.
 ;          Doesn't return size of loaded image (width x height).
 ;----------------------------------------
-proc _LoadBMP
+_LoadBMP_Sel_arglen	equ	10
+proc _LoadBMP_Sel
 
-.Name		arg	4  
+.Name		arg	4
 .Wheresel	arg	2
-.Where		arg	4     
+.Where		arg	4
 
 .file		equ	-4		; File handle (4 bytes)
 .width		equ	-8		; Image width (from header)
@@ -49,7 +68,7 @@ proc _LoadBMP
 	mov	dword [ebp + .file], eax
 
 	; Read Header
-	invoke	_ReadFile, dword [ebp + .file], word [_ScratchBlock], dword 0, dword 54
+	invoke	_ReadFile_Sel, dword [ebp + .file], word [_ScratchBlock], dword 0, dword 54
 
 	; Save width and height
 	push	gs
@@ -66,7 +85,7 @@ proc _LoadBMP
 	pop	gs				; Restore gs
 	
 	; Read Palette
-	invoke	_ReadFile, dword [ebp + .file], word [_ScratchBlock], dword 0, dword 1024
+	invoke	_ReadFile_Sel, dword [ebp + .file], word [_ScratchBlock], dword 0, dword 1024
 	
 	; Read in data a row at a time
 	mov	ebx, [ebp+.height]		; Start offset at lower
@@ -75,7 +94,7 @@ proc _LoadBMP
 	xor	edi, edi			; Start with row 0
 .NextRow:
 	push	ebx
-	invoke	_ReadFile, dword [ebp + .file], word [_ScratchBlock], dword 1024, dword [ebp + .width]	; Read row
+	invoke	_ReadFile_Sel, dword [ebp + .file], word [_ScratchBlock], dword 1024, dword [ebp + .width]	; Read row
 	pop	ebx
 	xor	esi, esi			; Start with column 0
 	xor	edx, edx
@@ -130,7 +149,7 @@ proc _LoadBMP
 	xor	edi, edi			; Start with row 0
 .NextRow24:
 	push	ebx
-	invoke	_ReadFile, dword [ebp + .file], word [_ScratchBlock], dword 0, dword [ebp + .filebytewidth]    ; Read row
+	invoke	_ReadFile_Sel, dword [ebp + .file], word [_ScratchBlock], dword 0, dword [ebp + .filebytewidth]    ; Read row
 	pop	ebx
 	xor	esi, esi			; Start with column 0
 	xor	edx, edx
@@ -184,7 +203,28 @@ proc _LoadBMP
 endproc
 
 ;----------------------------------------
-; bool SaveBMP(char *Name, short Wheresel, void *Where, int Width, int Height)
+; bool SaveBMP(char *Name, void *Where, int Width, int Height)
+; Purpose: Saves a 32-bit image into a 24-bit BMP file.
+; Inputs:  Name, (path)name of the BMP file
+;	   Where, image to save
+;          Width, width of image
+;          Height, height of image
+; Outputs: 1 on error, otherwise 0
+;----------------------------------------
+proc _SaveBMP
+	
+.Name		arg	4
+.Where		arg	4
+.Width          arg     4
+.Height         arg     4
+
+	invoke	_SaveBMP_Sel, dword [ebp+.Name], ds, dword [ebp+.Where], dword [ebp+.Width], dword [ebp+.Height]
+	ret
+endproc
+
+;----------------------------------------
+; bool SaveBMP_Sel(char *Name, short Wheresel, void *Where, int Width,
+;  int Height)
 ; Purpose: Saves a 32-bit image into a 24-bit BMP file.
 ; Inputs:  Name, (path)name of the BMP file
 ;	   Wheresel, selector in which Where resides
@@ -193,8 +233,8 @@ endproc
 ;          Height, height of image
 ; Outputs: 1 on error, otherwise 0
 ;----------------------------------------
-_SaveBMP_arglen equ     18
-proc _SaveBMP
+_SaveBMP_Sel_arglen	equ	18
+proc _SaveBMP_Sel
 	
 .Name		arg	4
 .Wheresel	arg	2
@@ -260,7 +300,7 @@ proc _SaveBMP
         pop     es
 
 	; Write the header out
-	invoke	_WriteFile, dword [ebp+.file], word [_ScratchBlock], dword 0, dword 54
+	invoke	_WriteFile_Sel, dword [ebp+.file], word [_ScratchBlock], dword 0, dword 54
 
         ; Zero buffer to be sure row padding is zeroed
         push    es
@@ -306,7 +346,7 @@ proc _SaveBMP
 
 	; Write line out to file
 	push	ebx
-	invoke	_WriteFile, dword [ebp+.file], word [_ScratchBlock], dword 0, dword [ebp+.filebytewidth]
+	invoke	_WriteFile_Sel, dword [ebp+.file], word [_ScratchBlock], dword 0, dword [ebp+.filebytewidth]
 	pop	ebx
 
         mov     ecx, [ebp+.Width]
