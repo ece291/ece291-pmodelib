@@ -1,7 +1,7 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: filefunc.asm,v 1.16 2001/04/07 04:50:27 pete Exp $
+; $Id: filefunc.asm,v 1.17 2001/04/17 22:47:17 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -281,6 +281,10 @@ proc _WriteFile_Sel
 	mov	ecx, esi		; Grab counter and divide by 4
 	shr	ecx, 1
 	shr	ecx, 1
+	test	esi, 3h			; Last 1-3 bytes?
+	jz	.NoExtra
+	inc	ecx			; Add an extra dword
+.NoExtra:
 	xor	edi, edi		; Start from address 0 in transfer buffer
 	mov	esi, edx		; Pointer into PM destination buffer
 	cld				; Make sure we count upward :)
