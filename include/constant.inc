@@ -1,7 +1,7 @@
 ; General constants
 ;  By Peter Johnson, 2001
 ;
-; $Id: constant.inc,v 1.5 2001/04/01 23:56:32 pete Exp $
+; $Id: constant.inc,v 1.6 2001/04/07 08:02:14 pete Exp $
 
 ; Socket constants:
 ;  Addresses:
@@ -22,18 +22,14 @@ SOCKEVENT_CLOSE		equ	20h
 
 ; Socket structures
 	STRUC	SOCKADDR
-.Family		resw	1	; Ignored (always AF_INET [0])
 .Port		resw	1	; Port number
 .Address	resd	1	; Network address
-.Zero		resb	8	; Reserved
 	ENDSTRUC
 
 	STRUC	HOSTENT
 .Name		resd	1	; Pointer to official name of host
 .Aliases	resd	1	; Pointer to 0-terminated array of pointers to
 				;  alias names
-.AddrType	resd	1	; Address Type (always AF_INET [0])
-.Length		resd	1	; Length of the address in bytes (always 4)
 .AddrList	resd	1	; Pointer to 0-terminated array of pointers to
 				;  addresses
 	ENDSTRUC
