@@ -1,0 +1,103 @@
+<!-- $Id: dma.html,v 1.1 2001/04/18 18:43:13 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h3><i>DMA Functions</i></h3></center>
+
+<h3><a name='DMA_Allocate_Mem'>bool DMA_Allocate_Mem(int Size, short *Selector, unsigned long *LinearAddress)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Allocates the specified amount of conventional memory, ensuring that the
+  returned block doesn't cross a page boundary.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Size, size (in bytes) to allocate for the DMA buffer</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Selector, the selector that should be used to free the block</li>
+  <li>LinearAddress, the linear address of the block</li>
+  <li>On error, returns 1 and sets Selector=LinearAddress=0.  Otherwise returns
+  0.</li>
+ </ul>
+</ul>
+
+<h3><a name='DMA_Start'>void DMA_Start(int Channel, unsigned long Address, int Size, bool auto_init, bool Write)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Starts the DMA controller for the specified channel, transferring Size
+  bytes from Address (the block must not cross a page boundary).</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Channel, DMA channel to start controller on</li>
+  <li>Address, linear address to transfer data from/to</li>
+  <li>Size, number of bytes to transfer</li>
+  <li>auto_init, if set, use the endless repeat DMA mode</li>
+  <li>Write, if set, use write mode, otherwise use read mode (use read mode
+  when doing sound input)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='DMA_Stop'>void DMA_Stop(int Channel)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Disables the specified DMA channel.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Channel, the DMA channel to disable</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='DMA_Todo'>unsigned long DMA_Todo(int Channel)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets the current position in a DMA transfer. Interrupts should be
+  disabled before calling this function.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Channel, the channel to get the position of</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the current position in the selected channel.</li>
+ </ul>
+</ul>
+
+<h3><a name='DMA_Lock_Mem'>void DMA_Lock_Mem(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Locks the memory used by the dma routines.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+</body>
+</html>
