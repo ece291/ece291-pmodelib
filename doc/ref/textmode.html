@@ -1,0 +1,110 @@
+<!-- $Id: textmode.html,v 1.1 2001/04/06 08:35:44 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h3><i>Text Mode Functions</i></h3></center>
+
+<h3><a name='SetModeC80'>void SetModeC80(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets 80x25 16-color text mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='TextSetPage'>void TextSetPage(short PageNum)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets current visible textmode page.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>PageNum, the page number to switch to (0-7)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='TextClearScreen'>void TextClearScreen(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Clears the textmode screen (first page only)</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes es=[_textsel]</li>
+ </ul>
+</ul>
+
+<h3><a name='TextWriteChar'>void TextWriteChar(short X, short Y, short Char, short Attrib)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes a single character (with attribute) to the textmode screen.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, column at which to write the character (0-79)</li>
+  <li>Y, row at which to write the character (0-24)</li>
+  <li>Char, character to write to the screen (0-255)</li>
+  <li>Attrib, attribute with which to draw the character</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes es=[_textsel]</li>
+ </ul>
+</ul>
+
+<h3><a name='TextWriteString'>void TextWriteString(short X, short Y, char *String, short Attrib)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes a string (with attribute) to the textmode screen.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, column at which to write the first character (0-79)</li>
+  <li>Y, row at which to write the first character (0-24)</li>
+  <li>String, string to write to the screen</li>
+  <li>Attrib, attribute with which to draw the string</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes es=[_textsel]</li>
+ </ul>
+</ul>
+
+</body>
+</html>

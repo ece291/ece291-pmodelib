@@ -1,0 +1,140 @@
+<!-- $Id: vbeaf.html,v 1.1 2001/04/06 08:35:44 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h3><i>High-Res VBE/AF Graphics Functions</i></h3></center>
+
+<h3><a name='LoadGraphicsDriver'>bool LoadGraphicsDriver(char *Filename)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Loads and initializes the specified VBE/AF graphics driver.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Filename, full pathname of the driver to load</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>1 on error, 0 otherwise</li>
+ </ul>
+</ul>
+
+<h3><a name='InitGraphics'>bool InitGraphics(char *kbINT, char *kbIRQ, unsigned short *kbPort)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Initializes VBE/AF graphics driver.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>1 on error, 0 otherwise</li>
+  <li>kbINT, kbIRQ, and kbPort values set to current keyboard settings
+   (9, 1, and 60h if no VBE/AF keyboard extension present)</li>
+ </ul>
+</ul>
+
+<h3><a name='ExitGraphics'>void ExitGraphics(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Shuts down graphics driver.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='FindGraphicsMode'>short FindGraphicsMode(short Width, short Height, short Depth, bool Emulated)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Tries to find a graphics mode matching the desired settings.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Width, width of desired resolution (in pixels)</li>
+  <li>Height, height of desired resolution (in pixels)</li>
+  <li>Depth, bits per pixel (8, 16, 24, 32)</li>
+  <li>Emulated, include driver-emulated modes (EX291)? (1=Yes, 0=No)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the mode number, or -1 if no matching mode found.</li>
+ </ul>
+</ul>
+
+<h3><a name='SetGraphicsMode'>bool SetGraphicsMode(short Mode)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets a new graphics mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Mode, mode number returned by FindGraphicsMode()</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>nonzero on error, 0 otherwise</li>
+ </ul>
+</ul>
+
+<h3><a name='UnsetGraphicsMode'>void UnsetGraphicsMode(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets out of current graphics mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='CopyToScreen'>void CopyToScreen(void *Source, int SourcePitch, int SourceLeft, int SourceTop, int Width, int Height, int DestLeft, int DestTop)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Copies a portion of the source image to the display memory.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Source, start address of source linear bitmap image</li>
+  <li>SourcePitch, total width of source image (in bytes)</li>
+  <li>SourceLeft, starting x coordinate of source area</li>
+  <li>SourceTop, starting y coordinate of source area</li>
+  <li>Width, width of area to copy (in pixels)</li>
+  <li>Height, height of area to copy (in pixels)</li>
+  <li>DestLeft, starting x coordinate of destination area</li>
+  <li>DestTop, starting y coordinate of destination area</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Source must have the same pixel format as the current video mode.</li>
+ </ul>
+</ul>
+
+</body>
+</html>

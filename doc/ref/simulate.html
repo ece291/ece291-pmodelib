@@ -1,0 +1,36 @@
+<!-- $Id: simulate.html,v 1.1 2001/04/06 08:35:44 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h2><i>Simulate Real-Mode Interrupt</i></h2></center>
+
+<h3><a name='DPMI_Int'>DPMI_Int</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Simulate a real-mode interrupt with the ability to set
+  ALL registers, including segments, without faulting</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>DPMI_Regs filled with RM interrupt inputs</li>
+  <li>BX = interrupt number to simulate</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>DPMI_Regs filled with RM interrupt outputs</li>
+  <li>CF=1 if error, AX=error code (see <a href="http://www.ece.uiuc.edu/ece291/class-resources/pmode/dpmi/index.html">DPMI reference</a> for codes)</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Doesn't use C calling convention</li>
+  <li>Clobbers CX, DX</li>
+ </ul>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!-- $Id: netbios.html,v 1.1 2001/04/06 08:35:44 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h3><i>NetBIOS Networking</i></h3></center>
+
+<h3><a name='NetInit'>char NetInit(unsigned int PostAddress, char *GroupName, char *MyName)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Initializes NetBIOS and sets up the receive callback procedure</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>PostAddress, address of receive packet callback procedure</li>
+  <li>GroupName, 16-byte string containing group name to use</li>
+  <li>MyName, 16-byte string containing machine name to use (may be modified)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns -1 on error, otherwise:</li>
+  <li>Returns player number assigned</li>
+  <li>MyName is changed to reflect actual machine name.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Callback procedure is declared as:</li>
+  <li>void Callback(unsigned int RXBuffer, unsigned int Length)</li>
+ </ul>
+</ul>
+
+<h3><a name='NetRelease'>void NetRelease(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Releases NetBIOS names and resources.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes NetInit() has been called!</li>
+ </ul>
+</ul>
+
+<h3><a name='SendPacket'>void SendPacket(int Length)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sends a packet out using NetBIOS.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Length, Data Length of data to transmit</li>
+  <li>TXBuffer filled with data to transmit</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes NetInit() has been called!</li>
+ </ul>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!-- $Id: memory.html,v 1.1 2001/04/06 08:35:44 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h3><i>Memory Handling</i></h3></center>
+
+<h3><a name='AllocMem'>void *AllocMem(unsigned int Size)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Allocates Size bytes of memory by extending DS.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Size, the amount of memory to allocate.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns offset of allocated memory, or -1 on error.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>This function works by extending the DS selector limit by Size bytes and
+  returning the old limit.</li>
+ </ul>
+</ul>
+
+<h3><a name='AllocSelector'>unsigned short AllocSelector(unsigned int Size)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Allocates a memory block of Size bytes.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Size, the size of the memory block to allocate.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns selector for the memory block, or -1 on error.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Can only allocate a maximum of MAXMEMHANDLES (16) blocks.</li>
+ </ul>
+</ul>
+
+<h3><a name='FreeSelector'>void FreeSelector(unsigned short Selector)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Frees a memory block allocated by <a href="#AllocMem">AllocMem()</a>.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Selector, the selector of the memory block to free.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>No error checking.</li>
+ </ul>
+</ul>
+
+<h3><a name='LockArea'>bool LockArea(short Selector, unsigned int Offset, unsigned int Length)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Locks an area of memory so it's safe for an interrupt handler to access.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Selector, selector of the area to lock</li>
+  <li>Offset, offset in selector of the start of the area</li>
+  <li>Length, length of the area</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise</li>
+ </ul>
+</ul>
+
+<h3><a name='GetPhysicalMapping'>bool GetPhysicalMapping(unsigned int *LinearAddress, short *Selector, unsigned long PhysicalAddress, int Size)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Maps a physical memory region into linear memory space.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>PhysicalAddress, the starting physical address to map.</li>
+  <li>Size, the size of the region to map.</li>
+  <li>Length, length of the area</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>LinearAddress, the linear address of the mapped region.</li>
+  <li>Selector, a selector that can be used to access the region.</li>
+  <li>Returns 1 on error, 0 otherwise</li>
+ </ul>
+</ul>
+
+<h3><a name='FreePhysicalMapping'>void FreePhysicalMapping(unsigned int *LinearAddress, short *Selector)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Frees the resources allocated by GetPhysicalMapping().</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>LinearAddress, the linear address of the mapping to free.</li>
+  <li>Selector, the selector used to point to the mapped memory block.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>LinearAddress and Selector are cleared to 0.</li>
+ </ul>
+</ul>
+
+</body>
+</html>

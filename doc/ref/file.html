@@ -1,0 +1,137 @@
+<!-- $Id: file.html,v 1.1 2001/04/06 08:35:44 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h3><i>General File Handling</i></h3></center>
+
+<h3><a name='OpenFile'>int OpenFile(char *Filename, short WriteTo)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Opens a file for reading or writing.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Filename, (path)name of the file to read</li>
+  <li>WriteTo, 1 if create &amp; open for writing, 0 for open to read</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns DOS handle to file, -1 on error.</li>
+ </ul>
+</ul>
+
+<h3><a name='CloseFile'>void CloseFile(int Handle)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Closes an open file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to close.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='ReadFile'>int ReadFile(int Handle, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads from a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to read from</li>
+  <li>Buffer, buffer to read into</li>
+  <li>Count, (maximum) number of bytes to read into buffer</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually read</li>
+ </ul>
+</ul>
+
+<h3><a name='ReadFile_Sel'>int ReadFile_Sel(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads from a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to read from</li>
+  <li>BufSel, selector in which Buffer resides</li>
+  <li>Buffer, pointer (into BufSel) of buffer to read into</li>
+  <li>Count, (maximum) number of bytes to read into buffer</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually read</li>
+ </ul>
+</ul>
+
+<h3><a name='WriteFile'>int WriteFile(int Handle, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes to a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to write to</li>
+  <li>Buffer, buffer to read from</li>
+  <li>Count, number of bytes to write out to the file</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually written</li>
+ </ul>
+</ul>
+
+<h3><a name='WriteFile_Sel'>int WriteFile_Sel(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes to a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to write to</li>
+  <li>BufSel, selector in which Buffer resides</li>
+  <li>Buffer, pointer (into BufSel) of buffer to read from</li>
+  <li>Count, number of bytes to write out to the file</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually written</li>
+ </ul>
+</ul>
+
+<h3><a name='SeekFile'>int SeekFile(int Handle, int Count, short From)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Moves current file position.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to seek within</li>
+  <li>Count, number of bytes to seek from position</li>
+  <li>From, position to seek from: 0=start, 1=current, 2=end</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns new file position (in bytes, from start of file), -1 on error</li>
+ </ul>
+</ul>
+
+</body>
+</html>
