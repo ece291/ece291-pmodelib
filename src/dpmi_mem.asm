@@ -1,12 +1,17 @@
 ; DPMI Interface - Memory-related Functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: dpmi_mem.asm,v 1.7 2001/03/16 22:43:48 pete Exp $
+; $Id: dpmi_mem.asm,v 1.8 2001/03/16 23:52:12 pete Exp $
 %include "myC32.mac"
 
 %assign MAXMEMHANDLES   16                      ; Maximum number of handles available
 
         BITS    32
+
+; Define libc functions used for memory allocation
+	EXTERN ___sbrk
+
+___sbrk_arglen	equ	4
 
         SECTION .data
 
@@ -14,6 +19,25 @@ HandleList      times MAXMEMHANDLES dd 0        ; DPMI Memory block handles
 SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to memory blocks
 
         SECTION .text
+
+;----------------------------------------
+; void *AllocMem(unsigned int Size);
+; Purpose: Allocates Size bytes of memory by extending DS.
+; Inputs:  Size, the amount of memory to allocate.
+; Outputs: Returns offset of allocated memory, or -1 on error.
+; Notes:   This function works by extending the DS selector limit by Size bytes
+;          and returning the old limit.
+;----------------------------------------
+proc _AllocMem
+
+.Size           arg     4
+
+	; FIXME: write our own version of this! :)
+	; Note to the curious: see DJGPP/src/libc/crt0/crt0.S to see how
+	;  complex this function really is.
+	invoke	___sbrk, dword [ebp+.Size]
+	ret
+endproc
 
 ;----------------------------------------
 ; short AllocSelector(unsigned int Size);
