@@ -5,7 +5,7 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.9 2001/04/17 23:40:31 pete Exp $
+; $Id: sb16.asm,v 1.10 2001/04/18 19:36:20 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -92,7 +92,7 @@ SB_NOENV		equ	4h
 
 	SECTION	.data
 
-rcsid	db	'$Id: sb16.asm,v 1.9 2001/04/17 23:40:31 pete Exp $',0
+rcsid	db	'$Id: sb16.asm,v 1.10 2001/04/18 19:36:20 pete Exp $',0
 
 _SB16_LockData_Start
 
@@ -294,10 +294,10 @@ proc _SB16_Start
 	je	.notStereo
 	add	al, 020h
 .notStereo
-	cmp	byte [SB16_Bits], 8
-	jne	.not8bitsSM
+	cmp	byte [SB16_Bits], 16
+	jne	.not16bitsSM
 	add	al, 010h
-.not8bitsSM
+.not16bitsSM
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword eax
 
 	; set length
