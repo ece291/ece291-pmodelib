@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.1 2001/03/02 08:03:39 pete Exp $
+; $Id: vbeaf.asm,v 1.2 2001/03/02 08:18:12 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "filefunc.inc"
@@ -259,7 +259,7 @@ VBEAFEnv	db	'VBEAF_PATH', 0
 ;----------------------------------------
 ; bool LoadGraphicsDriver(char *Filename);
 ; Purpose: Loads and initializes the specified VBE/AF graphics driver.
-; Inputs:  Filename, full pathname of the driver to load.
+; Inputs:  Filename, full pathname of the driver to load
 ; Outputs: 1 on error, 0 otherwise
 ;----------------------------------------
 _LoadGraphicsDriver_arglen	equ	4
@@ -580,7 +580,7 @@ _ExitGraphics
 
 ;----------------------------------------
 ; short FindGraphicsMode(short Width, short Height, short Depth, bool Emulated);
-; Purpose: Sets a new graphics mode.
+; Purpose: Tries to find a graphics mode matching the desired settings.
 ; Inputs:  Width, width of desired resolution (in pixels)
 ;          Height, height of desired resolution (in pixels)
 ;          Depth, bits per pixel (8, 16, 24, 32)
