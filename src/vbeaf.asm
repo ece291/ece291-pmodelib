@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.4 2001/03/17 17:50:53 pete Exp $
+; $Id: vbeaf.asm,v 1.5 2001/03/17 19:29:41 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "filefunc.inc"
@@ -39,6 +39,9 @@ EXTERN ___dos_argv0
 
 ; extension for remapped keyboard
 %define	FAFEXT_KEYBOARD	FAF_ID('K','E','Y','S')
+
+; extension for DispatchCall function (needed for EX291 driver)
+%define	FAFEXT_DISPATCHCALL	FAF_ID('D','I','C','L')
 
 ; EX291-specific emulation flag for video capabilities
 %define EX291_EMULATED	FAF_ID('E','M','U','L')
@@ -247,6 +250,7 @@ DriverSize	resd	1	; Size of driver
 InGraphicsMode	resb	1	; Are we in graphics mode?
 ModeInfo	resb	AF_MODE_INFO_size
 Filename	resb	256	; Driver filename (used in InitGraphics)
+FreeBEExt	resb	1	; FreeBE/AF extensions available?
 
 	SECTION	.data
 
@@ -454,6 +458,44 @@ proc _InitGraphics
 	cmp	word [esi+AF_DRIVER.Version], 0200h
 	jb	near .errorfree
 
+	; Extension init (C-style call)
+	mov	edi, [esi+AF_DRIVER.OemExt]
+	add	edi, esi
+	push	dword FAFEXT_INIT		; id parameter
+	push	esi				; af_driver parameter
+	call	edi
+	add	esp, 8				; discard parameters
+
+	; Check for nice magic number return value:
+	; version bytes ASCII digits?
+	cmp	al, '0'
+	jb	.noext
+	cmp	al, '9'
+	ja	.noext
+	cmp	ah, '0'
+	jb	.noext
+	cmp	al, '9'
+	ja	.noext
+	; top 16 bits match magic number?
+	and	eax, 0FFFF0000h
+	cmp	eax, FAFEXT_MAGIC
+	jne	.noext
+
+	; Indicate extensions present
+	mov	byte [FreeBEExt], 1
+
+	; Export DispatchCall if the driver wants it
+	push	dword FAFEXT_DISPATCHCALL
+	push	esi
+	call	[esi+AF_DRIVER.OemExt]
+	add	esp, 8
+	test	eax, eax		; Not wanted
+	jz	.noext
+
+	mov	dword [eax], _DispatchCall
+
+.noext:
+
 	; Set up plug and play hardware
 	mov	edi, [esi+AF_DRIVER.PlugAndPlayInit]	; Calculate proc address
 	add	edi, esi
@@ -476,28 +518,9 @@ proc _InitGraphics
 
 	mov	esi, [DriverOffset]
 
-	; Extension init (C-style call)
-	mov	edi, [esi+AF_DRIVER.OemExt]
-	add	edi, esi
-	push	dword FAFEXT_INIT		; id parameter
-	push	esi				; af_driver parameter
-	call	edi
-	add	esp, 8				; discard parameters
-
-	; Check for nice magic number return value:
-	; version bytes ASCII digits?
-	cmp	al, '0'
-	jb	.defaultkb
-	cmp	al, '9'
-	ja	.defaultkb
-	cmp	ah, '0'
-	jb	.defaultkb
-	cmp	al, '9'
-	ja	.defaultkb
-	; top 16 bits match magic number?
-	and	eax, 0FFFF0000h
-	cmp	eax, FAFEXT_MAGIC
-	jne	.defaultkb
+	; No extensions -> don't try to initialize keyboard
+	cmp	byte [FreeBEExt], 0
+	jz	.defaultkb
 
 	; Initialize keyboard settings
 	push	dword FAFEXT_KEYBOARD
@@ -832,4 +855,38 @@ proc _CopyToScreen
 	pop	fs
 	pop	es
 	ret
+endproc
+
+;----------------------------------------
+; unsigned int DispatchCall(unsigned int Handle, unsigned int Command,
+;  DISPATCH_DATA *Data);
+; Purpose: Passes control to the VDD, with parameters.
+; Inputs:  Handle, 16-bit VDD DLL Handle
+;          Command, 16-bit command ID
+;          Data, data to pass to VDD in FS:ESI
+; Outputs: None
+;----------------------------------------
+proc _DispatchCall
+
+.Handle		arg	4
+.Command	arg	4
+.Data		arg	4
+
+	push	fs
+	push	esi
+
+	mov	eax, ds
+	mov	fs, eax
+
+	mov	eax, [ebp+.Command]
+	shl	eax, 16
+	mov	ax, [ebp+.Handle]
+	clc
+	mov	esi, [ebp+.Data]
+	db	0C4h, 0C4h, 058h, 002h
+
+	pop	esi
+	pop	fs
+	ret
+endproc
 
