@@ -1,4 +1,4 @@
-<!-- $Id: reference.html,v 1.8 2001/04/06 08:35:44 pete Exp $ -->
+<!-- $Id: reference.html,v 1.9 2001/04/07 17:01:06 pete Exp $ -->
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
@@ -18,8 +18,8 @@ Pointer parameters take the address of the variable, not the contents.<br>
 <ul>
  <li><a href="ref/init.html">Initialization and Shutdown</a></li>
  <ul>
-  <li><a href='ref/init.html#LibInit'>_LibInit</a></li>
-  <li><a href='ref/init.html#LibExit'>_LibExit</a></li>
+  <li><a href='ref/init.html#LibInit'>LibInit()</a></li>
+  <li><a href='ref/init.html#LibExit'>LibExit()</a></li>
  </ul>
  <li><a href="ref/simulate.html">Simulate Real-Mode Interrupt</a></li>
  <ul>
@@ -27,94 +27,94 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
  <li><a href="ref/memory.html">Memory Handling</a></li>
  <ul>
-  <li><a href='ref/memory.html#AllocMem'>_AllocMem</a></li>
-  <li><a href='ref/memory.html#AllocSelector'>_AllocSelector</a></li>
-  <li><a href='ref/memory.html#FreeSelector'>_FreeSelector</a></li>
-  <li><a href='ref/memory.html#LockArea'>_LockArea</a></li>
-  <li><a href='ref/memory.html#GetPhysicalMapping'>_GetPhysicalMapping</a></li>
-  <li><a href='ref/memory.html#FreePhysicalMapping'>_FreePhysicalMapping</a></li>
+  <li><a href='ref/memory.html#AllocMem'>AllocMem()</a></li>
+  <li><a href='ref/memory.html#AllocSelector'>AllocSelector()</a></li>
+  <li><a href='ref/memory.html#FreeSelector'>FreeSelector()</a></li>
+  <li><a href='ref/memory.html#LockArea'>LockArea()</a></li>
+  <li><a href='ref/memory.html#GetPhysicalMapping'>GetPhysicalMapping()</a></li>
+  <li><a href='ref/memory.html#FreePhysicalMapping'>FreePhysicalMapping()</a></li>
  </ul>
  <li><a href="ref/file.html">General File Handling</a></li>
  <ul>
-  <li><a href='ref/file.html#OpenFile'>_OpenFile</a></li>
-  <li><a href='ref/file.html#CloseFile'>_CloseFile</a></li>
-  <li><a href='ref/file.html#ReadFile'>_ReadFile</a></li>
-  <li><a href='ref/file.html#ReadFile_Sel'>_ReadFile_Sel</a></li>
-  <li><a href='ref/file.html#WriteFile'>_WriteFile</a></li>
-  <li><a href='ref/file.html#WriteFile_Sel'>_WriteFile_Sel</a></li>
-  <li><a href='ref/file.html#SeekFile'>_SeekFile</a></li>
+  <li><a href='ref/file.html#OpenFile'>OpenFile()</a></li>
+  <li><a href='ref/file.html#CloseFile'>CloseFile()</a></li>
+  <li><a href='ref/file.html#ReadFile'>ReadFile()</a></li>
+  <li><a href='ref/file.html#ReadFile_Sel'>ReadFile_Sel()</a></li>
+  <li><a href='ref/file.html#WriteFile'>WriteFile()</a></li>
+  <li><a href='ref/file.html#WriteFile_Sel'>WriteFile_Sel()</a></li>
+  <li><a href='ref/file.html#SeekFile'>SeekFile()</a></li>
  </ul>
  <li><a href="ref/graphfile.html">Graphics File Handling</a></li>
  <ul>
-  <li><a href='ref/graphfile.html#LoadBMP'>_LoadBMP</a></li>
-  <li><a href='ref/graphfile.html#LoadBMP_Sel'>_LoadBMP_Sel</a></li>
-  <li><a href='ref/graphfile.html#SaveBMP'>_SaveBMP</a></li>
-  <li><a href='ref/graphfile.html#SaveBMP_Sel'>_SaveBMP_Sel</a></li>
+  <li><a href='ref/graphfile.html#LoadBMP'>LoadBMP()</a></li>
+  <li><a href='ref/graphfile.html#LoadBMP_Sel'>LoadBMP_Sel()</a></li>
+  <li><a href='ref/graphfile.html#SaveBMP'>SaveBMP()</a></li>
+  <li><a href='ref/graphfile.html#SaveBMP_Sel'>SaveBMP_Sel()</a></li>
  </ul>
  <li><a href="ref/int.html">Interrupt, IRQ, and Callback Wrappers</a></li>
  <ul>
-  <li><a href='ref/int.html#Install_Int'>_Install_Int</a></li>
-  <li><a href='ref/int.html#Remove_Int'>_Remove_Int</a></li>
-  <li><a href='ref/int.html#Init_IRQ'>_Init_IRQ</a></li>
-  <li><a href='ref/int.html#Exit_IRQ'>_Exit_IRQ</a></li>
-  <li><a href='ref/int.html#Restore_IRQ'>_Restore_IRQ</a></li>
-  <li><a href='ref/int.html#Enable_IRQ'>_Enable_IRQ</a></li>
-  <li><a href='ref/int.html#Disable_IRQ'>_Disable_IRQ</a></li>
-  <li><a href='ref/int.html#Get_RMCB'>_Get_RMCB</a></li>
-  <li><a href='ref/int.html#Free_RMCB'>_Free_RMCB</a></li>
+  <li><a href='ref/int.html#Install_Int'>Install_Int()</a></li>
+  <li><a href='ref/int.html#Remove_Int'>Remove_Int()</a></li>
+  <li><a href='ref/int.html#Init_IRQ'>Init_IRQ()</a></li>
+  <li><a href='ref/int.html#Exit_IRQ'>Exit_IRQ()</a></li>
+  <li><a href='ref/int.html#Restore_IRQ'>Restore_IRQ()</a></li>
+  <li><a href='ref/int.html#Enable_IRQ'>Enable_IRQ()</a></li>
+  <li><a href='ref/int.html#Disable_IRQ'>Disable_IRQ()</a></li>
+  <li><a href='ref/int.html#Get_RMCB'>Get_RMCB()</a></li>
+  <li><a href='ref/int.html#Free_RMCB'>Free_RMCB()</a></li>
  </ul>
  <li><a href="ref/textmode.html">Text Mode Functions</a></li>
  <ul>
-  <li><a href='ref/textmode.html#SetModeC80'>_SetModeC80</a></li>
-  <li><a href='ref/textmode.html#TextSetPage'>_TextSetPage</a></li>
-  <li><a href='ref/textmode.html#TextClearScreen'>_TextClearScreen</a></li>
-  <li><a href='ref/textmode.html#TextWriteChar'>_TextWriteChar</a></li>
-  <li><a href='ref/textmode.html#TextWriteString'>_TextWriteString</a></li>
+  <li><a href='ref/textmode.html#SetModeC80'>SetModeC80()</a></li>
+  <li><a href='ref/textmode.html#TextSetPage'>TextSetPage()</a></li>
+  <li><a href='ref/textmode.html#TextClearScreen'>TextClearScreen()</a></li>
+  <li><a href='ref/textmode.html#TextWriteChar'>TextWriteChar()</a></li>
+  <li><a href='ref/textmode.html#TextWriteString'>TextWriteString()</a></li>
  </ul>
  <li><a href="ref/vbeaf.html">High-Res VBE/AF Graphics Functions</a></li>
  <ul>
-  <li><a href='ref/vbeaf.html#LoadGraphicsDriver'>_LoadGraphicsDriver</a></li>
-  <li><a href='ref/vbeaf.html#InitGraphics'>_InitGraphics</a></li>
-  <li><a href='ref/vbeaf.html#ExitGraphics'>_ExitGraphics</a></li>
-  <li><a href='ref/vbeaf.html#FindGraphicsMode'>_FindGraphicsMode</a></li>
-  <li><a href='ref/vbeaf.html#SetGraphicsMode'>_SetGraphicsMode</a></li>
-  <li><a href='ref/vbeaf.html#UnsetGraphicsMode'>_UnsetGraphicsMode</a></li>
-  <li><a href='ref/vbeaf.html#CopyToScreen'>_CopyToScreen</a></li>
+  <li><a href='ref/vbeaf.html#LoadGraphicsDriver'>LoadGraphicsDriver()</a></li>
+  <li><a href='ref/vbeaf.html#InitGraphics'>InitGraphics()</a></li>
+  <li><a href='ref/vbeaf.html#ExitGraphics'>ExitGraphics()</a></li>
+  <li><a href='ref/vbeaf.html#FindGraphicsMode'>FindGraphicsMode()</a></li>
+  <li><a href='ref/vbeaf.html#SetGraphicsMode'>SetGraphicsMode()</a></li>
+  <li><a href='ref/vbeaf.html#UnsetGraphicsMode'>UnsetGraphicsMode()</a></li>
+  <li><a href='ref/vbeaf.html#CopyToScreen'>CopyToScreen()</a></li>
  </ul>
  <li><a href="ref/netbios.html">NetBIOS Networking</a></li>
  <ul>
-  <li><a href='ref/netbios.html#NetInit'>_NetInit</a></li>
-  <li><a href='ref/netbios.html#NetRelease'>_NetRelease</a></li>
-  <li><a href='ref/netbios.html#SendPacket'>_SendPacket</a></li>
+  <li><a href='ref/netbios.html#NetInit'>NetInit()</a></li>
+  <li><a href='ref/netbios.html#NetRelease'>NetRelease()</a></li>
+  <li><a href='ref/netbios.html#SendPacket'>SendPacket()</a></li>
  </ul>
  <li><a href="ref/sockets.html">IP Networking (TCP/IP, UDP/IP)</a></li>
  <ul>
-  <li><a href='ref/sockets.html#InitSocket'>_InitSocket</a></li>
-  <li><a href='ref/sockets.html#ExitSocket'>_ExitSocket</a></li>
-  <li><a href='ref/sockets.html#Socket_InstallCallback'>_Socket_InstallCallback</a></li>
-  <li><a href='ref/sockets.html#Socket_accept'>_Socket_accept</a></li>
-  <li><a href='ref/sockets.html#Socket_bind'>_Socket_bind</a></li>
-  <li><a href='ref/sockets.html#Socket_close'>_Socket_close</a></li>
-  <li><a href='ref/sockets.html#Socket_connect'>_Socket_connect</a></li>
-  <li><a href='ref/sockets.html#Socket_create'>_Socket_create</a></li>
-  <li><a href='ref/sockets.html#Socket_getpeername'>_Socket_getpeername</a></li>
-  <li><a href='ref/sockets.html#Socket_getsockname'>_Socket_getsockname</a></li>
-  <li><a href='ref/sockets.html#Socket_ntohl'>_Socket_ntohl</a></li>
-  <li><a href='ref/sockets.html#Socket_htonl'>_Socket_htonl</a></li>
-  <li><a href='ref/sockets.html#Socket_ntohs'>_Socket_ntohs</a></li>
-  <li><a href='ref/sockets.html#Socket_htons'>_Socket_htons</a></li>
-  <li><a href='ref/sockets.html#Socket_inet_addr'>_Socket_inet_addr</a></li>
-  <li><a href='ref/sockets.html#Socket_inet_ntoa'>_Socket_inet_ntoa</a></li>
-  <li><a href='ref/sockets.html#Socket_listen'>_Socket_listen</a></li>
-  <li><a href='ref/sockets.html#Socket_recv'>_Socket_recv</a></li>
-  <li><a href='ref/sockets.html#Socket_recvfrom'>_Socket_recvfrom</a></li>
-  <li><a href='ref/sockets.html#Socket_send'>_Socket_send</a></li>
-  <li><a href='ref/sockets.html#Socket_sendto'>_Socket_sendto</a></li>
-  <li><a href='ref/sockets.html#Socket_shutdown'>_Socket_shutdown</a></li>
-  <li><a href='ref/sockets.html#Socket_gethostbyaddr'>_Socket_gethostbyaddr</a></li>
-  <li><a href='ref/sockets.html#Socket_gethostbyname'>_Socket_gethostbyname</a></li>
-  <li><a href='ref/sockets.html#Socket_gethostname'>_Socket_gethostname</a></li>
-  <li><a href='ref/sockets.html#Socket_GetLastError'>_Socket_GetLastError</a></li>
+  <li><a href='ref/sockets.html#InitSocket'>InitSocket()</a></li>
+  <li><a href='ref/sockets.html#ExitSocket'>ExitSocket()</a></li>
+  <li><a href='ref/sockets.html#Socket_InstallCallback'>Socket_InstallCallback()</a></li>
+  <li><a href='ref/sockets.html#Socket_accept'>Socket_accept()</a></li>
+  <li><a href='ref/sockets.html#Socket_bind'>Socket_bind()</a></li>
+  <li><a href='ref/sockets.html#Socket_close'>Socket_close()</a></li>
+  <li><a href='ref/sockets.html#Socket_connect'>Socket_connect()</a></li>
+  <li><a href='ref/sockets.html#Socket_create'>Socket_create()</a></li>
+  <li><a href='ref/sockets.html#Socket_getpeername'>Socket_getpeername()</a></li>
+  <li><a href='ref/sockets.html#Socket_getsockname'>Socket_getsockname()</a></li>
+  <li><a href='ref/sockets.html#Socket_ntohl'>Socket_ntohl()</a></li>
+  <li><a href='ref/sockets.html#Socket_htonl'>Socket_htonl()</a></li>
+  <li><a href='ref/sockets.html#Socket_ntohs'>Socket_ntohs()</a></li>
+  <li><a href='ref/sockets.html#Socket_htons'>Socket_htons()</a></li>
+  <li><a href='ref/sockets.html#Socket_inet_addr'>Socket_inet_addr()</a></li>
+  <li><a href='ref/sockets.html#Socket_inet_ntoa'>Socket_inet_ntoa()</a></li>
+  <li><a href='ref/sockets.html#Socket_listen'>Socket_listen()</a></li>
+  <li><a href='ref/sockets.html#Socket_recv'>Socket_recv()</a></li>
+  <li><a href='ref/sockets.html#Socket_recvfrom'>Socket_recvfrom()</a></li>
+  <li><a href='ref/sockets.html#Socket_send'>Socket_send()</a></li>
+  <li><a href='ref/sockets.html#Socket_sendto'>Socket_sendto()</a></li>
+  <li><a href='ref/sockets.html#Socket_shutdown'>Socket_shutdown()</a></li>
+  <li><a href='ref/sockets.html#Socket_gethostbyaddr'>Socket_gethostbyaddr()</a></li>
+  <li><a href='ref/sockets.html#Socket_gethostbyname'>_Socket_gethostbyname()</a></li>
+  <li><a href='ref/sockets.html#Socket_gethostname'>Socket_gethostname()</a></li>
+  <li><a href='ref/sockets.html#Socket_GetLastError'>Socket_GetLastError()</a></li>
  </ul>
  <li><a href="ref/util.html">Miscelleanous Utility Functions</a></li>
  <ul>
