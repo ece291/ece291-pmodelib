@@ -9,7 +9,7 @@
 ;
 ; Version 2.0, Mar, 2000
 ;
-; $Id: netbios.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
+; $Id: netbios.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"            ; C interface macros
 
 %include "globals.inc"
@@ -131,7 +131,7 @@ ReceiveBadPost  resd    1
 ;          Length, Data Length of data to transmit
 ; Outputs: None (data transmitted out port)
 proc _SendPacket
-%$Length        arg     4
+.Length         arg     4
 
         push    esi
         push    edi
@@ -154,7 +154,7 @@ proc _SendPacket
 
         mov     cx, [_NetTransferSeg]
         mov     [es:GroupSendNCB+NCB.buf_seg], cx
-        mov     eax, [ebp+%$Length]
+        mov     eax, [ebp+.Length]
         mov     [es:GroupSendNCB+NCB.buflen], ax 
 
         mov     word [es:GroupSendNCB+NCB.post_off], 0          ; No post after sending
@@ -217,9 +217,9 @@ PostCallback_end
 ;          MyName is changed to reflect actual machine name.
 
 proc _NetInit
-%$PostAddress   arg     4
-%$GroupName     arg     4
-%$MyName        arg     4
+.PostAddress    arg     4
+.GroupName      arg     4
+.MyName         arg     4
 
         push    esi
         push    edi
@@ -229,18 +229,18 @@ proc _NetInit
         mov     ax, ds
         mov     es, ax
 
-        mov     esi, [ebp+%$GroupName]
+        mov     esi, [ebp+.GroupName]
         mov     edi, GroupName
         mov     ecx, 4
         rep movsd
         
-        mov     esi, [ebp+%$MyName]
+        mov     esi, [ebp+.MyName]
         mov     edi, MyName
         mov     ecx, 4
         rep movsd
 
         ; Save callback address
-        mov     eax, [ebp+%$PostAddress]
+        mov     eax, [ebp+.PostAddress]
         mov     [UserCallback], eax
         
         ; Alloc NetTransfer
@@ -341,7 +341,7 @@ proc _NetInit
         mov     dx, ds
         mov     es, dx
         mov     esi, MyName
-        mov     edi, [ebp+%$MyName]
+        mov     edi, [ebp+.MyName]
         mov     ecx, 4
         rep movsd
 

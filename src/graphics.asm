@@ -1,7 +1,7 @@
 ; Graphics (640x480x32-bit) routines
 ;  By Peter Johnson, 2000
 ;
-; $Id: graphics.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
+; $Id: graphics.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "constant.inc"
@@ -48,8 +48,8 @@ BytesPerLine	resd	1	; Bytes per scanline (DisplayWidth*4)
 ;----------------------------------------
 proc _SetGraphics
 
-%$Width		arg	2
-%$Height	arg	2
+.Width		arg	2
+.Height		arg	2
 
 	; Prepare Transfer buffer, DPMI_Regs structure
 	mov	es, [_Transfer_Buf]
@@ -86,14 +86,14 @@ proc _SetGraphics
 	jne	.no291drv	; Invalid info block or not 291 supplemental API
 
 	xor	eax, eax
-	mov	ax, [ebp+%$Width]
+	mov	ax, [ebp+.Width]
 	mov	[DisplayWidth], eax
 
 	shl	eax, 2
 	mov	[BytesPerLine], eax
 
 	xor	eax, eax
-	mov	ax, [ebp+%$Height]
+	mov	ax, [ebp+.Height]
 	mov	[DisplayHeight], eax
 
 	; Alloc 32-bit Video Backbuffer
@@ -106,9 +106,9 @@ proc _SetGraphics
 	
 	mov	ax, 4F23h		; [VESA] Supplemental API (ECE 291)
 	mov	bl, 2			; [291] Start Graphics Mode
-	mov	cx, [ebp+%$Width]	; [291] Display Width
+	mov	cx, [ebp+.Width]	; [291] Display Width
 	shl	ecx, 16
-	mov	cx, [ebp+%$Height]	; [291] Display Height
+	mov	cx, [ebp+.Height]	; [291] Display Height
 	mov	dx, [_VideoBlock]	; [291] PM Selector of backbuffer
 	xor	edi, edi		; [291] PM Offset of backbuffer
 	int	10h
@@ -178,9 +178,9 @@ _UnsetGraphics
 ;----------------------------------------
 proc _WritePixel
 
-%$X             arg     2
-%$Y             arg     2
-%$Color         arg     4
+.X              arg     2
+.Y              arg     2
+.Color          arg     4
 
 	push	es
 
@@ -190,21 +190,21 @@ proc _WritePixel
 	mov	es, [_VideoBlock]
 
         xor     eax, eax
-        mov     ax, [ebp+%$Y]
+        mov     ax, [ebp+.Y]
         imul    eax, dword [BytesPerLine]
         xor     ebx, ebx
-        mov     bx, [ebp+%$X]
+        mov     bx, [ebp+.X]
         shl     ebx, 2
         add     ebx, eax
 
-        mov     eax, [ebp+%$Color]
+        mov     eax, [ebp+.Color]
         mov     [es:ebx], eax           ; draw the pixel in the desired color
 
 	jmp	.Done
 .UseVESA:
 	mov	es, [VESA_Selector]
 
-	invoke	_WritePixelVESA, word [ebp+%$X], word [ebp+%$Y], dword [ebp+%$Color]
+	invoke	_WritePixelVESA, word [ebp+.X], word [ebp+.Y], dword [ebp+.Color]
 
 .Done:
 	pop	es
@@ -219,8 +219,8 @@ endproc
 ;----------------------------------------
 proc _ReadPixel
 
-%$X             arg     2
-%$Y             arg     2
+.X              arg     2
+.Y              arg     2
 
 	push	es
 
@@ -230,10 +230,10 @@ proc _ReadPixel
 	mov	es, [_VideoBlock]
 
         xor     eax, eax
-        mov     ax, [ebp+%$Y]
+        mov     ax, [ebp+.Y]
         imul    eax, dword [BytesPerLine]
         xor     ebx, ebx
-        mov     bx, [ebp+%$X]
+        mov     bx, [ebp+.X]
         shl     ebx, 2
         add     ebx, eax
 
@@ -243,7 +243,7 @@ proc _ReadPixel
 .UseVESA:
 	mov	es, [VESA_Selector]
 
-	invoke	_ReadPixelVESA, word [ebp+%$X], word [ebp+%$Y]
+	invoke	_ReadPixelVESA, word [ebp+.X], word [ebp+.Y]
 
 .Done:
 	pop	es

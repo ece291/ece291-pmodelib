@@ -1,7 +1,7 @@
 ; Text Mode (80x25x16) routines
 ;  By Peter Johnson, 1999
 ;
-; $Id: textmode.asm,v 1.5 2000/12/14 07:52:21 pete Exp $
+; $Id: textmode.asm,v 1.6 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"		; C interface macros
 %include "globals.inc"
 
@@ -37,9 +37,9 @@ _SetModeC80
 ;----------------------------------------
 proc _TextSetPage
 
-%$PageNum	arg	2
+.PageNum	arg	2
 
-        mov     ax, [ebp+%$PageNum]
+        mov     ax, [ebp+.PageNum]
         mov     ah, 05h
         int     10h
 
@@ -78,24 +78,24 @@ _TextClearScreen
 ;----------------------------------------
 proc _TextWriteChar
 
-%$X             arg	2
-%$Y             arg     2
-%$Char		arg	2
-%$Attrib	arg	2
+.X              arg	2
+.Y              arg     2
+.Char		arg	2
+.Attrib		arg	2
 
         push    ebx
 
 	xor     ebx, ebx
-        mov     bx, [ebp+%$Y]
+        mov     bx, [ebp+.Y]
         lea     ebx, [ebx+ebx*4]        ; Address = 2*(Row*80+Col)
         shl     ebx, 4
         xor     eax, eax
-        mov     ax, [ebp+%$X]
+        mov     ax, [ebp+.X]
         add     ebx, eax
         shl     ebx, 1
 
-        mov     ah, [ebp+%$Attrib]
-	mov     al, [ebp+%$Char]
+        mov     ah, [ebp+.Attrib]
+	mov     al, [ebp+.Char]
         mov     [es:ebx], ax
 
         pop     ebx
@@ -114,25 +114,25 @@ endproc
 ;----------------------------------------
 proc _TextWriteString
 
-%$X		arg	2
-%$Y		arg	2
-%$String	arg	4
-%$Attrib        arg	2
+.X		arg	2
+.Y		arg	2
+.String		arg	4
+.Attrib		arg	2
 
         push    ebx
 	push    esi
 
 	xor     ebx, ebx
-        mov     bx, [ebp+%$Y]
+        mov     bx, [ebp+.Y]
         lea     ebx, [ebx+ebx*4]        ; Address = 2*(Row*80+Col)
         shl     ebx, 4
         xor     eax, eax
-        mov     ax, [ebp+%$X]
+        mov     ax, [ebp+.X]
         add     ebx, eax
         shl     ebx, 1
 
-        mov     esi, [ebp+%$String]
-        mov     ah, [ebp+%$Attrib]
+        mov     esi, [ebp+.String]
+        mov     ah, [ebp+.Attrib]
 
 .CopyLoop:
         mov     al, [esi]

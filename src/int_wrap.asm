@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie, Shawn Hargreaves, and others.
 ;
-; $Id: int_wrap.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
+; $Id: int_wrap.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -155,8 +155,8 @@ __end_IntWrap
 ;----------------------------------------
 proc _Install_Int
 
-%$num           arg     4
-%$handler       arg     4
+.num            arg     4
+.handler        arg     4
 
         cmp     byte [_Int_Virgin], 0       ; first time we've been called?
         je      near .FindInt
@@ -188,9 +188,9 @@ proc _Install_Int
         jne     near .NextWrapper
 
         ; Save parameters in array
-        mov     edx, [ebp+%$handler]
+        mov     edx, [ebp+.handler]
         mov     [_IntHandlers+ecx*4], edx
-        mov     ebx, [ebp+%$num]
+        mov     ebx, [ebp+.num]
         mov     [_IntNumbers+ecx*4], ebx
 
         push    ecx                     ; Save wrapper # on stack
@@ -205,7 +205,7 @@ proc _Install_Int
         ; Set new interrupt vector
         mov     ax, 0205h               ; [DPMI 0.9] Set Protected Mode Interrupt Vector
         mov     edx, [_IntWrappers+ebx*4]       ; Offset of handler
-        mov     ebx, [ebp+%$num]                ; Interrupt number
+        mov     ebx, [ebp+.num]                 ; Interrupt number
         mov     cx, cs                          ; Selector of handler
         int     31h
 
@@ -229,9 +229,9 @@ endproc
 ;----------------------------------------
 proc _Remove_Int
 
-%$num           arg     4
+.num            arg     4
 
-        mov     ebx, [ebp+%$num]
+        mov     ebx, [ebp+.num]
         xor     ecx, ecx
 .FindWrapper:
         cmp     [_IntNumbers+ecx*4], ebx
@@ -315,12 +315,12 @@ _Init_IRQ
 ;----------------------------------------
 proc _Restore_IRQ
 
-%$num           arg     4
+.num            arg     4
 
         cmp     byte [_PIC_Virgin], 0
         jne     near .Done
 
-        mov     ecx, [ebp+%$num]
+        mov     ecx, [ebp+.num]
         cmp     ecx, 7
         jle     .NotHighIRQ
 
@@ -389,13 +389,13 @@ endproc
 ;----------------------------------------
 proc _Enable_IRQ
 
-%$num           arg     4
+.num            arg     4
 
         invoke  _Init_IRQ
 
         in      al, 21h
 
-        mov     ecx, [ebp+%$num]
+        mov     ecx, [ebp+.num]
         cmp     ecx, 7
         jle     .LowIRQ
 
@@ -451,11 +451,11 @@ endproc
 ;----------------------------------------
 proc _Disable_IRQ
 
-%$num           arg     4
+.num            arg     4
 
         invoke  _Init_IRQ
 
-        mov     ecx, [ebp+%$num]
+        mov     ecx, [ebp+.num]
         cmp     ecx, 7
         jle     .LowIRQ
 

@@ -1,7 +1,7 @@
 ; DPMI Interface - Memory-related Functions
 ;  By Peter Johnson, 1999
 ;
-; $Id: dpmi_mem.asm,v 1.4 2000/12/14 07:52:21 pete Exp $
+; $Id: dpmi_mem.asm,v 1.5 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"
 
 %assign MAXMEMHANDLES   16                      ; Maximum number of handles available
@@ -24,7 +24,7 @@ SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to memory blocks
 ;----------------------------------------
 proc _AllocMem
 
-%$Size          arg     4
+.Size           arg     4
 
 .Index          equ     -4              ; free index into arrays
 
@@ -54,7 +54,7 @@ proc _AllocMem
         
 
         mov     ax, 0501h                       ; [DPMI 0.9] Allocate Linear Memory Block
-        mov     ebx, [ebp + %$Size]             ; Size of block (32 bit)
+        mov     ebx, [ebp + .Size]              ; Size of block (32 bit)
         mov     cx, bx
         shr     ebx, 16                         ; size of block is stored in bx:cx
         or      cx, 0FFFh                       ; set the lower 12 bits to 1 to page-align
@@ -75,7 +75,7 @@ proc _AllocMem
         jc      .Error
 
         mov     ax, 0008h                       ; [DPMI 0.9] Set Segment Limit
-        mov     ecx, [ebp + %$Size]             ; Size of block (32 bit)
+        mov     ecx, [ebp + .Size]              ; Size of block (32 bit)
         mov     dx, cx
         shr     ecx, 16                         ; size of block is stored in cx:dx
         or      dx, 0FFFh                       ; set the lower 12 bits to 1 to page-align
@@ -121,13 +121,13 @@ endproc
 ;----------------------------------------
 proc _FreeMem
 
-%$Selector	arg     2
+.Selector	arg     2
 
         push    esi
         push    edi
         push    es
 
-        mov     bx, [ebp + %$Selector]          ; Get parameter
+        mov     bx, [ebp + .Selector]           ; Get parameter
 
         xor     ecx, ecx
 .Find:                                          ; Search for selector
@@ -178,10 +178,10 @@ endproc
 ;----------------------------------------
 proc _GetPhysicalMapping
 
-%$LinearAddressPtr      arg     4
-%$SelectorPtr           arg     4
-%$PhysicalAddress       arg     4
-%$Size                  arg     4
+.LinearAddressPtr       arg     4
+.SelectorPtr            arg     4
+.PhysicalAddress        arg     4
+.Size                   arg     4
 
         push    esi
         push    edi
@@ -189,13 +189,13 @@ proc _GetPhysicalMapping
 
         ; First map the physical address into linear memory
         ; If it's below the 1MB limit, just directly map it (bugfix)
-        mov     ebx, [ebp+%$PhysicalAddress]
+        mov     ebx, [ebp+.PhysicalAddress]
         cmp     ebx, 100000h
         jb      .LinearMappingDone
 
         mov     ecx, ebx
         shr     ebx, 16         ; BX:CX = physical address of memory
-        mov     esi, [ebp+%$Size]
+        mov     esi, [ebp+.Size]
         mov     edi, esi
         shr     esi, 16         ; SI:DI = size of region to map (bytes)
         mov     ax, 0800h       ; [DPMI 0.9] Physical Address Mapping
@@ -210,7 +210,7 @@ proc _GetPhysicalMapping
         mov     bx, cx
 
 .LinearMappingDone:
-        mov     edi, [ebp+%$LinearAddressPtr]
+        mov     edi, [ebp+.LinearAddressPtr]
         mov     [edi], ebx      ; Save linear mapping
 
         ; Now get a selector for the memory region
@@ -220,7 +220,7 @@ proc _GetPhysicalMapping
         int     31h
         jc      .SelectorError
 
-        mov     edi, [ebp+%$SelectorPtr]
+        mov     edi, [ebp+.SelectorPtr]
         mov     [edi], ax       ; Save selector
 
         ; Set the base and limit for the new selector
@@ -232,7 +232,7 @@ proc _GetPhysicalMapping
         int     31h
         jc      .SelectorError
 
-        mov     ecx, [ebp+%$Size]
+        mov     ecx, [ebp+.Size]
         dec     ecx
         mov     edx, ecx
         shr     ecx, 16         ; CX:DX = 32-bit segment limit
@@ -244,11 +244,11 @@ proc _GetPhysicalMapping
         jmp     .done
 .SelectorError:
         ; If error while allocating selector, free the linear mapping
-        mov     ebx, [ebp+%$PhysicalAddress]
+        mov     ebx, [ebp+.PhysicalAddress]
         cmp     ebx, 100000h
         jb      .LinearMappingFreeDone
 
-        mov     edi, [ebp+%$LinearAddressPtr]
+        mov     edi, [ebp+.LinearAddressPtr]
         mov     ebx, [edi]
         mov     ecx, ebx
         shr     ebx, 16         ; BX:CX = linear address
@@ -256,7 +256,7 @@ proc _GetPhysicalMapping
         int     31h
 
 .LinearMappingFreeDone:
-        mov     edi, [ebp+%$LinearAddressPtr]
+        mov     edi, [ebp+.LinearAddressPtr]
         mov     dword [edi], 0
 .error:
         mov     eax, 1
@@ -277,13 +277,13 @@ endproc
 ;----------------------------------------
 proc _FreePhysicalMapping
 
-%$LinearAddressPtr      arg     4
-%$SelectorPtr           arg     4
+.LinearAddressPtr       arg     4
+.SelectorPtr            arg     4
 
         push    esi
 
         ; First, free the linear address mapping
-        mov     esi, [ebp+%$LinearAddressPtr]
+        mov     esi, [ebp+.LinearAddressPtr]
         mov     ebx, [esi]
 
         cmp     ebx, 100000h
@@ -297,7 +297,7 @@ proc _FreePhysicalMapping
 .LinearMappingFreeDone:
         mov     dword [esi], 0
 
-        mov     esi, [ebp+%$SelectorPtr]
+        mov     esi, [ebp+.SelectorPtr]
         mov     bx, [esi]       ; BX = selector to free
         test    bx, bx          ; Make sure the selector is valid (eg, not 0)
         jz      .Done
@@ -321,27 +321,27 @@ endproc
 ;----------------------------------------
 proc _LockArea
 
-%$Selector      arg     2
-%$Offset        arg     4
-%$Length        arg     4
+.Selector       arg     2
+.Offset         arg     4
+.Length         arg     4
 
         push    esi
         push    edi
 
         mov     ax, 0006h               ; [DPMI 0.9] Get Segment Base Address
-        mov     bx, [ebp+%$Selector]
+        mov     bx, [ebp+.Selector]
         int     31h
         jc      .Done
 
         shl     ecx, 16                 ; Move cx:dx address into ecx
         mov     cx, dx
 
-        add     ecx, [ebp+%$Offset]     ; Add in offset into selector
+        add     ecx, [ebp+.Offset]      ; Add in offset into selector
         
         mov     ebx, ecx                ; Linear address in bx:cx
         shr     ebx, 16
 
-        mov     esi, [ebp+%$Length]     ; Length in si:di
+        mov     esi, [ebp+.Length]      ; Length in si:di
         mov     edi, esi
         shr     esi, 16
 

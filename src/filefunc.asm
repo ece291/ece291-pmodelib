@@ -3,7 +3,7 @@
 ;
 ; String handling simplifications in _OpenFile (repnz) by Jason Galliccho.
 ;
-; $Id: filefunc.asm,v 1.5 2000/12/14 07:52:21 pete Exp $
+; $Id: filefunc.asm,v 1.6 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -20,8 +20,8 @@
 ;----------------------------------------
 proc _OpenFile
 
-%$Filename	arg	4   
-%$WriteTo	arg	2
+.Filename	arg	4   
+.WriteTo	arg	2
 
 	push	edi
 	push	esi
@@ -30,14 +30,14 @@ proc _OpenFile
 	mov	es, [_Transfer_Buf]
 	mov	ax, [_Transfer_Buf_Seg]
 	mov	word [DPMI_DS], ax
-	mov	esi, [ebp + %$Filename]
+	mov	esi, [ebp + .Filename]
 	xor	edi, edi
 	mov	ecx,  1024 ; Max file name length
 	cld
 	repnz	movsb
 	pop	es
 	
-	cmp	word [ebp+%$WriteTo], 1
+	cmp	word [ebp+.WriteTo], 1
 	je	.CreateNew
 	mov	dword [DPMI_EAX], 03D00h	; [DOS] Open Existing File (Read Only)
 	jmp	.DoOpen
@@ -70,10 +70,10 @@ endproc
 ;----------------------------------------
 proc _CloseFile
 
-%$Handle	arg	4
+.Handle		arg	4
 
 	mov	ah, 03Eh		; [DOS] Close File
-	mov	ebx, dword [ebp + %$Handle]
+	mov	ebx, dword [ebp + .Handle]
 	int	21h
 
 endproc
@@ -89,10 +89,10 @@ endproc
 ;----------------------------------------
 proc _ReadFile
 
-%$Handle	arg	4
-%$BufSeg	arg	2
-%$Buffer	arg	4
-%$Count		arg	4
+.Handle		arg	4
+.BufSeg		arg	2
+.Buffer		arg	4
+.Count		arg	4
 
 .NGot		equ	-4		; local storage for total number of bytes read
 .STACK_FRAME_SIZE	equ	4
@@ -105,8 +105,8 @@ proc _ReadFile
         mov     ax, [_Transfer_Buf_Seg]
         mov     word [DPMI_DS], ax
 
-        mov     es, word [ebp + %$BufSeg]       ; Set segment to write to (PM data area)
-        mov     edi, dword [ebp + %$Count]      ; Move count (of bytes to copy) into register
+        mov     es, word [ebp + .BufSeg]        ; Set segment to write to (PM data area)
+        mov     edi, dword [ebp + .Count]       ; Move count (of bytes to copy) into register
         mov     dword [ebp + .NGot], 0          ; Set the number of bytes read = 0
 .NextBlock:
         mov     esi, edi                        ; If the number of bytes remaining
@@ -115,7 +115,7 @@ proc _ReadFile
         mov     esi, 16*2048                    ;  read as much as we can (32k)
 .DoRead:
         mov     dword [DPMI_EAX], 03F00h        ; [DOS] Read from file
-        mov     edx, dword [ebp + %$Handle]
+        mov     edx, dword [ebp + .Handle]
         mov     dword [DPMI_EBX], edx           ; Handle to read from
         mov     dword [DPMI_ECX], esi           ; Number of bytes to read
         mov     dword [DPMI_EDX], 0             ; Read into transfer buffer starting at 0
@@ -133,7 +133,7 @@ proc _ReadFile
         add     dword [ebp + .NGot], ebx        ; add to total read
 
         ; Copy into PM memory from RM transfer buffer
-        mov     edx, dword [ebp + %$Buffer]     ; Get current pointer into PM destination buffer
+        mov     edx, dword [ebp + .Buffer]      ; Get current pointer into PM destination buffer
         push    ds
         mov     ds, word [_Transfer_Buf]        ; Set segment to read from (RM transfer buffer)
         push    edi                             ; Save registers
@@ -156,7 +156,7 @@ proc _ReadFile
         pop     edi
         pop     ds
 
-        add     dword [ebp + %$Buffer], ebx     ; Advance PM buffer pointer
+        add     dword [ebp + .Buffer], ebx      ; Advance PM buffer pointer
 
         test    edi, edi                        ; Any bytes left to read? If not, then stop
         je      .CopyFinish
@@ -185,10 +185,10 @@ endproc
 ;----------------------------------------
 proc _WriteFile
 
-%$Handle	arg	4
-%$BufSeg	arg	2
-%$Buffer	arg	4
-%$Count		arg	4
+.Handle		arg	4
+.BufSeg		arg	2
+.Buffer		arg	4
+.Count		arg	4
 
 .NPut		equ	-4		; local storage for total number of bytes written
 .STACK_FRAME_SIZE	equ	4
@@ -202,7 +202,7 @@ proc _WriteFile
         mov     word [DPMI_DS], ax
 
         mov     es, word [_Transfer_Buf]        ; Set segment to write to (PM data area)
-        mov     edi, dword [ebp + %$Count]      ; Move count (of bytes to copy) into register
+        mov     edi, dword [ebp + .Count]       ; Move count (of bytes to copy) into register
         mov     dword [ebp + .NPut], 0          ; Set the number of bytes written = 0
 .NextBlock:
         mov     esi, edi                        ; If the number of bytes remaining
@@ -211,9 +211,9 @@ proc _WriteFile
         mov     esi, 16*2048                    ;  write as much as we can (32k)
 .DoWrite:
         ; Copy into RM transfer buffer from PM memory
-        mov     edx, dword [ebp + %$Buffer]     ; Get current pointer into PM destination buffer
+        mov     edx, dword [ebp + .Buffer]      ; Get current pointer into PM destination buffer
         push    ds
-        mov     ds, word [ebp + %$BufSeg]       ; Set segment to read from (PM memory)
+        mov     ds, word [ebp + .BufSeg]        ; Set segment to read from (PM memory)
         push    edi                             ; Save registers
         push    esi
 
@@ -230,7 +230,7 @@ proc _WriteFile
         pop     ds
 
         mov     dword [DPMI_EAX], 04000h        ; [DOS] Write to file
-        mov     edx, dword [ebp + %$Handle]
+        mov     edx, dword [ebp + .Handle]
         mov     dword [DPMI_EBX], edx           ; Handle to write to
         mov     dword [DPMI_ECX], esi           ; Number of bytes to write
         mov     dword [DPMI_EDX], 0             ; Write out of transfer buffer starting at 0
@@ -246,7 +246,7 @@ proc _WriteFile
         sub     edi, esi                        ; subtract bytes copied from total yet to write
         mov     ebx, dword [DPMI_EAX]           ; get the actual # of bytes write
         add     dword [ebp + .NPut], ebx        ; add to total written
-        add     dword [ebp + %$Buffer], ebx     ; Advance PM buffer pointer
+        add     dword [ebp + .Buffer], ebx      ; Advance PM buffer pointer
 
         test    edi, edi                        ; Any bytes left to write? If not, then stop
         je      .CopyFinish

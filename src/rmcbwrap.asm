@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie.
 ;
-; $Id: rmcbwrap.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
+; $Id: rmcbwrap.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 %include "dpmi_int.inc"
@@ -172,10 +172,10 @@ __end_RMCB_Wrap
 ;----------------------------------------
 proc _Get_RMCB
 
-%$RM_Segment    	arg     4
-%$RM_Offset     	arg     4
-%$Handler_Address       arg     4
-%$ReturnTypeRETF        arg     4
+.RM_Segment		arg     4
+.RM_Offset		arg     4
+.Handler_Address	arg     4
+.ReturnTypeRETF		arg     4
 
         cmp     byte [_RMCB_Virgin], 0      ; first time we've been called?
         je      near .FindRMCB
@@ -250,9 +250,9 @@ proc _Get_RMCB
         jne     near .NextWrapper
 
         ; Save parameters in array
-        mov     edx, [ebp+%$Handler_Address]
+        mov     edx, [ebp+.Handler_Address]
         mov     [_RMCBHandlers+ecx*4], edx
-        mov     ebx, [ebp+%$ReturnTypeRETF]
+        mov     ebx, [ebp+.ReturnTypeRETF]
         mov     [_RMCBReturnTypes+ecx], bl
 
         ; Clear array flags
@@ -288,9 +288,9 @@ proc _Get_RMCB
         jc      .Done                   ; Leave if error
 
         ; Grab return values
-        mov     eax, [ebp+%$RM_Segment]
+        mov     eax, [ebp+.RM_Segment]
         mov     [eax], cx
-        mov     eax, [ebp+%$RM_Offset]
+        mov     eax, [ebp+.RM_Offset]
         mov     [eax], dx
 
         ; Save RM seg:off in library for check in Free_RMCB
@@ -319,12 +319,12 @@ endproc
 ;----------------------------------------
 proc _Free_RMCB
 
-%$RM_Segment	arg     2
-%$RM_Offset     arg     2
+.RM_Segment	arg     2
+.RM_Offset	arg     2
 
-        mov     bx, [ebp+%$RM_Segment]
+        mov     bx, [ebp+.RM_Segment]
         shl     ebx, 16
-        mov     bx, [ebp+%$RM_Offset]
+        mov     bx, [ebp+.RM_Offset]
         
 	xor     ecx, ecx
 .FindWrapper:
@@ -336,8 +336,8 @@ proc _Free_RMCB
         ; Tell DPMI to free callback
         xor     eax, eax
         mov     ax, 0304h               ; [DPMI 0.9] Free Real Mode Callback Address
-        mov     cx, [ebp+%$RM_Segment]  ; Segment of callback
-        mov     dx, [ebp+%$RM_Offset]   ; Offset of callback
+        mov     cx, [ebp+.RM_Segment]   ; Segment of callback
+        mov     dx, [ebp+.RM_Offset]    ; Offset of callback
         int     31h
 
         pop     ecx

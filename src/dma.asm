@@ -6,7 +6,7 @@
 ;	- MikMod
 ;	- GUS SDK (!)
 ;
-; $Id: dma.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
+; $Id: dma.asm,v 1.4 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -201,12 +201,12 @@ DMA_Start_Funcs         ; Mark the beginning of code area to lock
 ;----------------------------------------
 proc _DMA_Allocate_Mem
 
-%$Size          arg     4
-%$Selector      arg     4
-%$LinearAddress arg     4
+.Size           arg     4
+.Selector       arg     4
+.LinearAddress  arg     4
 
         ; Allocate twice as much memory as we really need
-        mov     ebx, [ebp+%$Size]
+        mov     ebx, [ebp+.Size]
         shl     ebx, 1                  ; 2x
         add     ebx, 15                 ; correct for rounding
         shr     ebx, 4                  ; 16-byte paragraphs
@@ -215,7 +215,7 @@ proc _DMA_Allocate_Mem
 	int	31h
         jc      .error
 
-        mov     ebx, [ebp+%$Selector]
+        mov     ebx, [ebp+.Selector]
         mov     [ebx], dx       ; Save selector
 
         and     eax, 0FFFFh     ; Mask off high 16 bits of eax
@@ -227,26 +227,26 @@ proc _DMA_Allocate_Mem
         shr     ebx, 16
 
         mov     edx, eax
-        add     edx, [ebp+%$Size]
+        add     edx, [ebp+.Size]
         shr     edx, 16
 
         cmp     ebx, edx
         je      .save
 
-        add     eax, [ebp+%$Size]
+        add     eax, [ebp+.Size]
 
 .save:
         ; Save LinearAddress
-        mov     ebx, [ebp+%$LinearAddress]
+        mov     ebx, [ebp+.LinearAddress]
         mov     [ebx], eax
 
         xor     eax, eax
         jmp     .done
 .error:
         xor     eax, eax
-        mov     ebx, [ebp+%$Selector]
+        mov     ebx, [ebp+.Selector]
         mov     [ebx], ax
-        mov     edx, [ebp+%$LinearAddress]
+        mov     edx, [ebp+.LinearAddress]
         mov     [edx], eax
         inc     eax
 .done:
@@ -267,25 +267,25 @@ endproc
 ;----------------------------------------
 proc _DMA_Start
 
-%$Channel       arg     4
-%$Address       arg     4
-%$Size          arg     4
-%$auto_init     arg     4
-%$Write         arg     4
+.Channel        arg     4
+.Address        arg     4
+.Size           arg     4
+.auto_init      arg     4
+.Write          arg     4
 
         push    esi
         push    edi
 
-        mov     edx, [ebp+%$Channel]    ; edx = channel
+        mov     edx, [ebp+.Channel]     ; edx = channel
         mov     esi, edx
         imul    esi, byte DMA_ENTRY_size
         add     esi, mydma              ; offset into mydma array
 
-        mov     ebx, [ebp+%$Address]    ; ebx = address
+        mov     ebx, [ebp+.Address]     ; ebx = address
         mov     ecx, ebx
         shr     ecx, 16                 ; ecx = page
 
-        mov     eax, [ebp+%$Size]       ; eax = size
+        mov     eax, [ebp+.Size]        ; eax = size
 
         cmp     edx, 4
         jb      .not16bit               ; 16 bit data is halved
@@ -299,7 +299,7 @@ proc _DMA_Start
         and     ebx, 0FFFFh             ; ebx = offset = address & 0xffff
         dec     edx                     ; size--
 
-        cmp     dword [ebp+%$Write], 0
+        cmp     dword [ebp+.Write], 0
         jz      .NotWrite
         mov     eax, [esi+DMA_ENTRY.write]      ; eax = mode
         jmp     short .DoneWrite
@@ -307,12 +307,12 @@ proc _DMA_Start
         mov     eax, [esi+DMA_ENTRY.read]       ; eax = mode
 .DoneWrite:
 
-        cmp     dword [ebp+%$auto_init], 0
+        cmp     dword [ebp+.auto_init], 0
         jz      .NotAutoInit
         or      eax, 10h                ; mode |= 0x10
 .NotAutoInit:
 
-        mov     [ebp+%$Size], edx       ; put size back on stack, to free edx
+        mov     [ebp+.Size], edx        ; put size back on stack, to free edx
         mov     edi, eax                ; edi = mode, to free eax
 
         ; disable channel
@@ -344,7 +344,7 @@ proc _DMA_Start
         out     dx, al
         ; count LSB
         mov     dx, [esi+DMA_ENTRY.count]
-        mov     eax, [ebp+%$Size]       ; grab size
+        mov     eax, [ebp+.Size]        ; grab size
         out     dx, al
         ; count MSB
         shr     eax, 8
@@ -367,9 +367,9 @@ endproc
 ;----------------------------------------
 proc _DMA_Stop
 
-%$Channel       arg     4
+.Channel        arg     4
 
-        mov     ebx, [ebp+%$Channel]
+        mov     ebx, [ebp+.Channel]
         imul    ebx, byte DMA_ENTRY_size
         add     ebx, mydma              ; offset into mydma array
 
@@ -389,9 +389,9 @@ endproc
 ;----------------------------------------
 proc _DMA_Todo
 
-%$Channel       arg     4
+.Channel       arg     4
 
-        mov     ebx, [ebp+%$Channel]
+        mov     ebx, [ebp+.Channel]
         imul    ebx, byte DMA_ENTRY_size
         add     ebx, mydma              ; offset into mydma array
 
@@ -422,7 +422,7 @@ proc _DMA_Todo
         cmp     bx, 40h
         jg      .loop
 
-        mov     eax, [ebp+%$Channel]
+        mov     eax, [ebp+.Channel]
         cmp     al, 3
         jle     .not16bit
         shl     ecx, 1          ; double count for 16 bit transfers

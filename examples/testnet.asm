@@ -1,7 +1,7 @@
 ; Test program for NetBIOS
 ;  By Peter Johnson, 2000
 ;
-; $Id: testnet.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
+; $Id: testnet.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
 %include "lib291.inc"
 
         BITS 32
@@ -52,8 +52,8 @@ TransmitString  db 'TestNet '   ; Sample Message to transmit
 ;          MessageLength, length of the message received (in bytes).
 ; Outputs: None
 proc NetDriver
-%$ReceivePtr    arg     4
-%$MessageLength arg     4
+.ReceivePtr     arg     4
+.MessageLength  arg     4
 
         push    esi
         push    edi
@@ -62,11 +62,11 @@ proc NetDriver
         mov     ax, ds
         mov     es, ax
 
-        mov     eax, [ebp+%$MessageLength]
+        mov     eax, [ebp+.MessageLength]
         
         ; Copy the received message into ReceiveString        
         push    ds
-        mov     esi, [ebp+%$ReceivePtr]
+        mov     esi, [ebp+.ReceivePtr]
         mov     edi, ReceiveString
         add     edi, [ReceiveIndex]     ; Index into ReceiveString
         mov     ds, [_NetTransferSel]

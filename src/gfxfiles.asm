@@ -1,7 +1,7 @@
 ; Various file loading functions
 ;  By Peter Johnson, 1999
 ;
-; $Id: gfxfiles.asm,v 1.5 2000/12/14 07:52:21 pete Exp $
+; $Id: gfxfiles.asm,v 1.6 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "globals.inc"
@@ -31,9 +31,9 @@ ScreenShot_index	db	'A'
 ;----------------------------------------
 proc _LoadBMP
 
-%$Name		arg	4  
-%$Wheresel	arg	2
-%$Where		arg	4     
+.Name		arg	4  
+.Wheresel	arg	2
+.Where		arg	4     
 
 .file		equ	-4		; File handle (4 bytes)
 .width		equ	-8		; Image width (from header)
@@ -49,7 +49,7 @@ proc _LoadBMP
 	push	ebx
 
 	; Open File
-	invoke	_OpenFile, dword [ebp+%$Name], word 0
+	invoke	_OpenFile, dword [ebp+.Name], word 0
 	cmp	eax, -1
 	jz	near .error
 	mov	dword [ebp + .file], eax
@@ -89,7 +89,7 @@ proc _LoadBMP
 	push	ds				; Redirect ds to avoid using segment offsets
 	mov	ds, [_ScratchBlock]
 	push	es				; Redirect es to destination area
-	mov	es, [ebp + %$Wheresel]
+	mov	es, [ebp + .Wheresel]
 
 .NextCol:
 	xor	ecx, ecx			; Clear registers
@@ -97,7 +97,7 @@ proc _LoadBMP
 	mov	al, [1024 + esi]		; Get color index from line buffer
 	shl	eax, 2				; Load address in palette of bgrx quad
 	mov	ecx, [eax]			; Get bgrx quad from palette
-	mov	eax, [ebp + %$Where]		; Get starting address to write to
+	mov	eax, [ebp + .Where]		; Get starting address to write to
 	mov	[es:eax+ebx*4], ecx		; Write to 32-bit buffer
 
 	inc	ebx				; Increment byte count
@@ -144,7 +144,7 @@ proc _LoadBMP
 	push	ds				; Redirect ds to avoid using segment offsets
 	mov	ds, [_ScratchBlock]
 	push	es				; Redirect es to destination area
-	mov	es, [ebp + %$Wheresel]
+	mov	es, [ebp + .Wheresel]
 
 .NextCol24:
 	xor	ecx, ecx			; Clear registers
@@ -157,7 +157,7 @@ proc _LoadBMP
 	shl	ecx, 8
 	or	cl, [esi]			; Get blue value from line buffer
         inc     esi
-	mov	eax, [ebp + %$Where]		; Get starting address to write to
+	mov	eax, [ebp + .Where]		; Get starting address to write to
 	mov	[es:eax+ebx*4], ecx		; Write to 32-bit buffer
 
 	inc	ebx				; Increment dest. pixel count
@@ -202,11 +202,11 @@ endproc
 _SaveBMP_arglen equ     18
 proc _SaveBMP
 	
-%$Name		arg	4
-%$Wheresel	arg	2
-%$Where		arg	4
-%$Width         arg     4
-%$Height        arg     4
+.Name		arg	4
+.Wheresel	arg	2
+.Where		arg	4
+.Width          arg     4
+.Height         arg     4
 
 .file		equ	-4
 .filebytewidth  equ     -8	; Image width in file (in bytes)
@@ -218,7 +218,7 @@ proc _SaveBMP
 	push	edi
 	push	ebx
 	
-	invoke	_OpenFile, dword [ebp+%$Name], word 1																;to write
+	invoke	_OpenFile, dword [ebp+.Name], word 1																;to write
 	cmp	eax, -1
 	jz	near .Error
 	
@@ -235,12 +235,12 @@ proc _SaveBMP
 	mov	ax, 'BM'	        ; bfType
         stosw
 	; Calculate bfSize
-	mov     eax, [ebp+%$Width]
+	mov     eax, [ebp+.Width]
 	lea	eax, [eax+eax*2]		; 24-bit bitmap -> 3 bytes/pixel
         add     eax, 3                          ; rows are aligned on 4 byte
         and     al, 0FCh                        ; boundaries in file
 	mov     [ebp+.filebytewidth], eax       ; save file width on stack
-	imul    eax, dword [ebp+%$Height]       ; total size of image
+	imul    eax, dword [ebp+.Height]        ; total size of image
         add     eax, 54                         ; + total header size
         stosd
 	xor	eax, eax                ; bfReserved
@@ -251,9 +251,9 @@ proc _SaveBMP
         ; BITMAPINFOHEADER
 	mov	ax, 40                  ; biSize
         stosd
-	mov     eax, [ebp+%$Width]      ; biWidth
+	mov     eax, [ebp+.Width]       ; biWidth
 	stosd         
-        mov     eax, [ebp+%$Height]     ; biHeight
+        mov     eax, [ebp+.Height]      ; biHeight
 	stosd        
 	mov	ax, 1                   ; biPlanes
         stosw
@@ -277,22 +277,22 @@ proc _SaveBMP
         rep stosd
         pop     es
 
-        mov     ebx, [ebp+%$Height]     ; Start at end since bitmap file is bottom up
+        mov     ebx, [ebp+.Height]      ; Start at end since bitmap file is bottom up
         dec     ebx
-        imul    ebx, dword [ebp+%$Width]
+        imul    ebx, dword [ebp+.Width]
         shl     ebx, 2
 
 .NextRow:
 	xor	esi, esi		; Start with column 0
 	xor	edi, edi
 
-        mov     ecx, [ebp+%$Width]      ; Pixels to copy this row
+        mov     ecx, [ebp+.Width]       ; Pixels to copy this row
 
 	push	es
 	mov	es, [_ScratchBlock]
 
 	push	ds
-	mov	ds, [ebp+%$Wheresel]
+	mov	ds, [ebp+.Wheresel]
 
 .NextCol:
 	mov	eax, [ebx+esi*4]		; Read from 32-bit buffer
@@ -315,7 +315,7 @@ proc _SaveBMP
 	invoke	_WriteFile, dword [ebp+.file], word [_ScratchBlock], dword 0, dword [ebp+.filebytewidth]
 	pop	ebx
 
-        mov     ecx, [ebp+%$Width]
+        mov     ecx, [ebp+.Width]
         shl     ecx, 2
 	sub	ebx, ecx			; Get to previous row
 

@@ -1,7 +1,7 @@
 ; Test program for mouse callback (real-mode callback wrappers)
 ;  By Peter Johnson, 1999
 ;
-; $Id: mousetst.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
+; $Id: mousetst.asm,v 1.4 2000/12/18 06:16:34 pete Exp $
 %include "lib291.inc"
 
         BITS 32
@@ -25,10 +25,10 @@ SECTION .text ; Says that this is the start of the code section.
 
 ; Callbacks get DPMIRegsPtr as a pointer to the DPMI registers structure
 proc MouseCallback
-%$DPMIRegsPtr	arg     4
+.DPMIRegsPtr	arg     4
 
         push    esi
-        mov     esi, [ebp+%$DPMIRegsPtr]
+        mov     esi, [ebp+.DPMIRegsPtr]
 
         mov     eax, [esi+DPMI_EBX_off]
         mov     [buttonstatus], ax

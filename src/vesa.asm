@@ -1,7 +1,7 @@
 ; VESA (640x480x32-bit) routines
 ;  By Peter Johnson, 1999-2000
 ;
-; $Id: vesa.asm,v 1.4 2000/12/14 07:52:21 pete Exp $
+; $Id: vesa.asm,v 1.5 2000/12/18 06:16:34 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "globals.inc"
@@ -100,7 +100,7 @@ VESA_BytesPerScanLine		dd	4*WINDOW_W
 ;	   Returns 1 on error, otherwise 0
 ;----------------------------------------
 proc _CheckVESA
-%$mode		arg	4
+.mode		arg	4
 
 	push	esi		; preserve C register vars
 	push	edi		;  (don't count on BIOS preserving anything)
@@ -154,7 +154,7 @@ proc _CheckVESA
 
         mov     dword [DPMI_EAX], 4F01h ; [VESA] Get SVGA Mode information
         mov     dword [DPMI_EDI], 0     ; ES:DI = Buffer for SVGA info
-        mov     eax, [ebp+%$mode]
+        mov     eax, [ebp+.mode]
         mov     [ModeSelected], eax     ; Save selected mode
         mov     dword [DPMI_ECX], eax   ; CX = SVGA mode
         mov     bx, 10h
@@ -267,21 +267,21 @@ _UnsetVESA
 ;----------------------------------------
 proc _WritePixelVESA
 
-%$X             arg     2
-%$Y             arg     2
-%$Color         arg     4
+.X              arg     2
+.Y              arg     2
+.Color          arg     4
 
         xor     eax, eax
-        mov     ax, [ebp+%$Y]
+        mov     ax, [ebp+.Y]
         xor     ebx, ebx
         mov     bx, [ModeInfo_BytesPerScanLine]
         imul    eax, ebx
         xor     ebx, ebx
-        mov     bx, [ebp+%$X]
+        mov     bx, [ebp+.X]
         shl     ebx, 2
         add     ebx, eax
 
-        mov     eax, [ebp+%$Color]
+        mov     eax, [ebp+.Color]
         mov     [es:ebx], eax           ; draw the pixel in the desired color
 
 endproc
@@ -296,16 +296,16 @@ endproc
 ;----------------------------------------
 proc _ReadPixelVESA
 
-%$X             arg     2
-%$Y             arg     2
+.X              arg     2
+.Y              arg     2
 
         xor     eax, eax
-        mov     ax, [ebp+%$Y]
+        mov     ax, [ebp+.Y]
         xor     ebx, ebx
         mov     bx, [ModeInfo_BytesPerScanLine]
         imul    eax, ebx
         xor     ebx, ebx
-        mov     bx, [ebp+%$X]
+        mov     bx, [ebp+.X]
         shl     ebx, 2
         add     ebx, eax
 
