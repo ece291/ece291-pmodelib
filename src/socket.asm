@@ -5,7 +5,7 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.8 2001/04/11 21:07:19 pete Exp $
+; $Id: socket.asm,v 1.9 2001/04/12 01:07:21 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "dpmi_int.inc"
@@ -349,9 +349,7 @@ Socket_InterruptHandler_end
 ; Inputs:  Socket, a socket which is listening for connections after a
 ;           Socket_Listen().
 ;          Name, an optional (may be 0) pointer to a structure which receives
-;           the network address of the connecting entity.  The exact format of
-;           the Addr argument is determined by the address family established
-;           when the socket was created.
+;           the network address of the connecting entity.
 ; Outputs: Returns the socket for the accepted connection, or 0FFFFFFFFh (-1)
 ;           if an error occurs.
 ;----------------------------------------
@@ -449,7 +447,7 @@ endproc
 ;----------------------------------------
 ; unsigned int Socket_ntohl(unsigned int NetVal);
 ; Purpose: Converts an unsigned int from network to host byte order.
-; Inputs:  HostVal, a 32-bit number in network byte order.
+; Inputs:  NetVal, a 32-bit number in network byte order.
 ; Outputs: Returns the NetVal in host byte order.
 ;----------------------------------------
 	GLOBAL	_Socket_ntohl
@@ -474,7 +472,7 @@ endproc
 ;----------------------------------------
 ; unsigned short Socket_ntohs(unsigned short NetVal);
 ; Purpose: Converts an unsigned short from network to host byte order.
-; Inputs:  HostVal, a 16-bit number in network byte order.
+; Inputs:  NetVal, a 16-bit number in network byte order.
 ; Outputs: Returns the NetVal in host byte order.
 ;----------------------------------------
 	GLOBAL	_Socket_ntohs
@@ -497,7 +495,7 @@ endproc
 
 ;----------------------------------------
 ; unsigned int Socket_inet_addr(char *DottedAddress);
-; Purpose: Converts a string containing a dotted address into an IN_ADDR.
+; Purpose: Converts a string containing a dotted address into a 32-bit address.
 ; Inputs:  DottedAddress, string representing a number expressed in the
 ;           Internet standard "." notation.
 ; Outputs: Returns the Internet address corresponding to DottedAddress in
@@ -513,8 +511,8 @@ endproc
 
 ;----------------------------------------
 ; char *Socket_inet_ntoa(unsigned int Address);
-; Purpose: Converts a network address (IN_ADDR) into a string in dotted format.
-; Inputs:  Address, Internet host address to convert.
+; Purpose: Converts a 32-bit network address into a string in dotted format.
+; Inputs:  Address, Internet address to convert.
 ; Outputs: Returns pointer to a static buffer containing the network address in
 ;           standard "." notation.  This buffer is overwritten on subsequent
 ;           calls to this function.
