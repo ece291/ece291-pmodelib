@@ -1,7 +1,7 @@
 ; VESA (640x480x32-bit) routines
 ;  By Peter Johnson, 1999-2000
 ;
-; $Id: vesa.asm,v 1.6 2000/12/18 07:28:46 pete Exp $
+; $Id: vesa.asm,v 1.7 2000/12/18 07:35:18 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "globals.inc"
@@ -16,69 +16,69 @@
 VESA_LinearAddress	resd	1	; Linear address of video framebuffer
 VESA_Selector		resw	1	; Selector used to access framebuffer
 
-VESA_Info		; VESA information block
-VESAInfo_Signature		resb	4
-VESAInfo_Version		resw	1
-VESAInfo_OEMStringPtr		resd	1
-VESAInfo_Capabilities		resb	4
-VESAInfo_VideoModePtr		resd	1
-VESAInfo_TotalMemory		resw	1
-VESAInfo_OEMSoftwareRev		resw	1
-VESAInfo_OEMVendorNamePtr	resd	1
-VESAInfo_OEMProductNamePtr	resd	1
-VESAInfo_OEMProductRevPtr	resd	1
-VESAInfo_Reserved		resb	222
-VESAInfo_OEMData		resb	256
+VESAInfo		; VESA information block
+.Signature		resb	4
+.Version		resw	1
+.OEMStringPtr		resd	1
+.Capabilities		resb	4
+.VideoModePtr		resd	1
+.TotalMemory		resw	1
+.OEMSoftwareRev		resw	1
+.OEMVendorNamePtr	resd	1
+.OEMProductNamePtr	resd	1
+.OEMProductRevPtr	resd	1
+.Reserved		resb	222
+.OEMData		resb	256
 
-Mode_Info		; VESA information for a mode
-ModeInfo_ModeAttributes		resw	1
-ModeInfo_WinAAttributes		resb	1
-ModeInfo_WinBAttributes		resb	1
-ModeInfo_WinGranularity		resw	1
-ModeInfo_WinSize		resw	1
-ModeInfo_WinASegment		resw	1
-ModeInfo_WinBSegment		resw	1
-ModeInfo_WinFuncPtr		resd	1
-ModeInfo_BytesPerScanLine	resw	1
-ModeInfo_XResolution		resw	1
-ModeInfo_YResolution		resw	1
-ModeInfo_XCharSize		resb	1
-ModeInfo_YCharSize		resb	1
-ModeInfo_NumberOfPlanes		resb	1
-ModeInfo_BitsPerPixel		resb	1
-ModeInfo_NumberOfBanks		resb	1
-ModeInfo_MemoryModel		resb	1
-ModeInfo_BankSize		resb	1
-ModeInfo_NumberOfImagePages	resb	1
-ModeInfo_Reserved_page		resb	1
-ModeInfo_RedMaskSize		resb	1
-ModeInfo_RedMaskPos		resb	1
-ModeInfo_GreenMaskSize		resb	1
-ModeInfo_GreenMaskPos		resb	1
-ModeInfo_BlueMaskSize		resb	1
-ModeInfo_BlueMaskPos		resb	1
-ModeInfo_ReservedMaskSize	resb	1
-ModeInfo_ReservedMaskPos	resb	1
-ModeInfo_DirectColorModeInfo	resb	1
+ModeInfo		; VESA information for a mode
+.ModeAttributes		resw	1
+.WinAAttributes		resb	1
+.WinBAttributes		resb	1
+.WinGranularity		resw	1
+.WinSize		resw	1
+.WinASegment		resw	1
+.WinBSegment		resw	1
+.WinFuncPtr		resd	1
+.BytesPerScanLine	resw	1
+.XResolution		resw	1
+.YResolution		resw	1
+.XCharSize		resb	1
+.YCharSize		resb	1
+.NumberOfPlanes		resb	1
+.BitsPerPixel		resb	1
+.NumberOfBanks		resb	1
+.MemoryModel		resb	1
+.BankSize		resb	1
+.NumberOfImagePages	resb	1
+.Reserved_page		resb	1
+.RedMaskSize		resb	1
+.RedMaskPos		resb	1
+.GreenMaskSize		resb	1
+.GreenMaskPos		resb	1
+.BlueMaskSize		resb	1
+.BlueMaskPos		resb	1
+.ReservedMaskSize	resb	1
+.ReservedMaskPos	resb	1
+.DirectColorModeInfo	resb	1
 ; VBE 2.0 extensions
-ModeInfo_PhysBasePtr		resd	1
-ModeInfo_OffScreenMemOffset	resd	1
-ModeInfo_OffScreenMemSize	resw	1
+.PhysBasePtr		resd	1
+.OffScreenMemOffset	resd	1
+.OffScreenMemSize	resw	1
 ; VBE 3.0 extensions
-ModeInfo_LinBytesPerScanLine	resw	1
-ModeInfo_BnkNumberOfPages	resb	1
-ModeInfo_LinNumberOfPages	resb	1
-ModeInfo_LinRedMaskSize		resb	1
-ModeInfo_LinRedFieldPos		resb	1
-ModeInfo_LinGreenMaskSize	resb	1
-ModeInfo_LinGreenFieldPos	resb	1
-ModeInfo_LinBlueMaskSize	resb	1
-ModeInfo_LinBlueFieldPos	resb	1
-ModeInfo_LinRsvdMaskSize	resb	1
-ModeInfo_LinRsvdFieldPos	resb	1
-ModeInfo_MaxPixelClock		resd	1
+.LinBytesPerScanLine	resw	1
+.BnkNumberOfPages	resb	1
+.LinNumberOfPages	resb	1
+.LinRedMaskSize		resb	1
+.LinRedFieldPos		resb	1
+.LinGreenMaskSize	resb	1
+.LinGreenFieldPos	resb	1
+.LinBlueMaskSize	resb	1
+.LinBlueFieldPos	resb	1
+.LinRsvdMaskSize	resb	1
+.LinRsvdFieldPos	resb	1
+.MaxPixelClock		resd	1
 ; Reserved
-ModeInfo_Reserved		resb	190	   
+.Reserved		resb	190	   
 
 ModeSelected	resd	1	; Selected graphics mode, set by CheckVESA, used by SetVESA
 
@@ -132,15 +132,15 @@ proc _CheckVESA
         mov     ds, [_Transfer_Buf]
         xor     esi, esi
         mov     es, ax
-        mov     edi, VESA_Info
+        mov     edi, VESAInfo
         mov     ecx, 128        ; 128 dwords = 512 bytes
         rep     movsd           ; Copy into local structure from transfer buffer
         pop     ds
 
-        cmp     dword [VESAInfo_Signature], 'VESA'
+        cmp     dword [VESAInfo.Signature], 'VESA'
         jne     .error          ; VESA not installed (invalid info block)
 
-        cmp     byte [VESAInfo_Version+1], 2
+        cmp     byte [VESAInfo.Version+1], 2
         jb      .error          ; VESA version below 2.0
 
         ; Try to get a 640x480x32-bit mode.
@@ -169,13 +169,13 @@ proc _CheckVESA
         mov     ds, [_Transfer_Buf]
         xor     esi, esi
         mov     es, ax
-        mov     edi, Mode_Info
+        mov     edi, ModeInfo
         mov     ecx, 64         ; 64 dwords = 256 bytes
         rep     movsd           ; Copy into local structure from transfer buffer
         pop     ds
 
         xor     eax, eax
-        mov     ax, [ModeInfo_BytesPerScanLine]
+        mov     ax, [ModeInfo.BytesPerScanLine]
         mov     [VESA_BytesPerScanLine], eax
 
         xor     eax, eax
@@ -219,9 +219,9 @@ _SetVESA
         
         ; Get the memory mapping
         xor     eax, eax
-        mov     ax, word [VESAInfo_TotalMemory]
+        mov     ax, word [VESAInfo.TotalMemory]
         shl     eax, 16
-        invoke  _GetPhysicalMapping, dword VESA_LinearAddress, dword VESA_Selector, dword [ModeInfo_PhysBasePtr], dword eax
+        invoke  _GetPhysicalMapping, dword VESA_LinearAddress, dword VESA_Selector, dword [ModeInfo.PhysBasePtr], dword eax
         cmp     ax, 1
         je     .done
 
@@ -275,7 +275,7 @@ proc _WritePixelVESA
         xor     eax, eax
         mov     ax, [ebp+.Y]
         xor     ebx, ebx
-        mov     bx, [ModeInfo_BytesPerScanLine]
+        mov     bx, [ModeInfo.BytesPerScanLine]
         imul    eax, ebx
         xor     ebx, ebx
         mov     bx, [ebp+.X]
@@ -304,7 +304,7 @@ proc _ReadPixelVESA
         xor     eax, eax
         mov     ax, [ebp+.Y]
         xor     ebx, ebx
-        mov     bx, [ModeInfo_BytesPerScanLine]
+        mov     bx, [ModeInfo.BytesPerScanLine]
         imul    eax, ebx
         xor     ebx, ebx
         mov     bx, [ebp+.X]
