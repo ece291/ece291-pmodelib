@@ -28,7 +28,7 @@ void readjpg_get_row(unsigned char *pRow)
     int i;
 
     jpeg_read_scanlines(&cinfo, &pRow, 1);
-    for(i=cinfo.output_width; i>0; i--) {
+    for(i=cinfo.output_width-1; i>0; i--) {
 	*(pRow+4*i+0) = *(pRow+3*i+2);
 	*(pRow+4*i+1) = *(pRow+3*i+1);
 	*(pRow+4*i+2) = *(pRow+3*i+0);
