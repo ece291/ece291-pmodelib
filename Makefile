@@ -1,7 +1,7 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.6 2001/03/02 08:03:39 pete Exp $
+# $Id: Makefile,v 1.7 2001/03/16 23:55:14 pete Exp $
 
 # set some useful paths
 OBJ = obj
@@ -41,7 +41,7 @@ $(LIB): $(LIB_OBJS)
 	ar rs $(LIB) $(LIB_OBJS)
 
 clean:
-	rm -f obj/*.* lib291.a list/*.*
+	rm -f obj/*.o lib291.a list/*.lst
 
 veryclean: clean
 	rm -f examples/*.exe
