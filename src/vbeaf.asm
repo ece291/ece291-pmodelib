@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.3 2001/03/16 22:58:30 pete Exp $
+; $Id: vbeaf.asm,v 1.4 2001/03/17 17:50:53 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "filefunc.inc"
@@ -9,19 +9,17 @@
 	BITS	32
 
 ; Define libc functions used for driver loading
-	EXTERN _malloc
-	EXTERN _free
+	EXTERN ___sbrk
 	EXTERN _getenv
 
-_malloc_arglen	equ	4
-_free_arglen	equ	4
+___sbrk_arglen	equ	4
 _getenv_arglen	equ	4
 
 ; Selectors used by C code
 EXTERN _djgpp_es, _djgpp_fs, _djgpp_gs
 
 ; Program argv[] array
-EXTERN ___crt0_argv
+EXTERN ___dos_argv0
 
 ; FreeBE/AF API extensions use 32 bit magic numbers
 %define	FAF_ID(a,b,c,d)	((a<<24) | (b<<16) | (c<<8) | d)
@@ -245,6 +243,7 @@ afHaveEVCStereoSync	equ	8000h	; HW stereo sync via EVC connector
 	SECTION .bss
 
 DriverOffset	resd	1	; Offset of malloc()'ed VBE/AF driver
+DriverSize	resd	1	; Size of driver
 InGraphicsMode	resb	1	; Are we in graphics mode?
 ModeInfo	resb	AF_MODE_INFO_size
 Filename	resb	256	; Driver filename (used in InitGraphics)
@@ -268,8 +267,7 @@ proc _LoadGraphicsDriver
 .Filename	arg	4
 
 .file		equ	-4		; file handle
-.size		equ	-8		; size of driver
-.STACK_FRAME_SIZE	equ	8
+.STACK_FRAME_SIZE	equ	4
 
 	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	es			; Set up selectors C code expects
@@ -289,7 +287,7 @@ proc _LoadGraphicsDriver
 	invoke	_SeekFile, dword [ebp+.file], dword 0, word 2
 	cmp	eax, -1
 	je	.error
-	mov	[ebp+.size], eax
+	mov	[DriverSize], eax
 
 	; Seek back to start of file
 	invoke	_SeekFile, dword [ebp+.file], dword 0, word 0
@@ -301,14 +299,14 @@ proc _LoadGraphicsDriver
 	;  Probably not--malloc uses some nasty DPMI tricks and a 16-bit p-mode 
 	;  (yuck :) function to accomplish the magic of extending the CS
 	;  selector limit.
-	invoke	_malloc, dword [ebp+.size]
+	invoke	___sbrk, dword [DriverSize]
 	test	eax, eax
 	jz	.error
 	mov	[DriverOffset], eax
 
 	; Read in driver
-	invoke	_ReadFile, dword [ebp+.file], dword [DriverOffset], dword [ebp+.size]
-	cmp	eax, [ebp+.size]
+	invoke	_ReadFile, dword [ebp+.file], dword [DriverOffset], dword [DriverSize]
+	cmp	eax, [DriverSize]
 	jne	.errorfree
 
 	; Close driver file
@@ -318,7 +316,9 @@ proc _LoadGraphicsDriver
 	jmp	short .done
 
 .errorfree:
-	invoke	_free, dword [DriverOffset]
+	mov	eax, [DriverSize]	; Do a negative sbrk to free memory
+	neg	eax
+	invoke	___sbrk, eax
 	mov	dword [DriverOffset], 0
 .error:
 	xor	eax, eax
@@ -364,9 +364,15 @@ proc _InitGraphics
 	; Same directory as program
 	;  - Grab argv[0] and replace filename part with "vbeaf.drv"
 	mov	ecx, 256		; Maximum filename length
-	mov	esi, [___crt0_argv]
+	mov	esi, [___dos_argv0]
 	mov	edi, Filename
-	repnz	movsb
+.argv0copy:
+	mov	al, [esi]
+	mov	[edi], al
+	inc	esi
+	inc	edi
+	or	al, al
+	jnz	.argv0copy
 	; Find trailing slash before the filename
 .findlastslash:
 	cmp	byte [edi], '/'
@@ -452,7 +458,7 @@ proc _InitGraphics
 	mov	edi, [esi+AF_DRIVER.PlugAndPlayInit]	; Calculate proc address
 	add	edi, esi
 	mov	ebx, esi		; driver pointer in ebx
-	call	[edi]
+	call	edi
 	test	eax, eax
 	jnz	near .errorfree
 
@@ -464,7 +470,7 @@ proc _InitGraphics
 	mov	edi, [esi+AF_DRIVER.InitDriver]
 	add	edi, esi
 	mov	ebx, esi
-	call	[edi]
+	call	edi
 	test	eax, eax
 	jnz	near .errorfree
 
@@ -475,7 +481,7 @@ proc _InitGraphics
 	add	edi, esi
 	push	dword FAFEXT_INIT		; id parameter
 	push	esi				; af_driver parameter
-	call	[edi]
+	call	edi
 	add	esp, 8				; discard parameters
 
 	; Check for nice magic number return value:
@@ -531,7 +537,9 @@ proc _InitGraphics
 	jmp	short .done
 
 .errorfree:
-	invoke	_free, dword [DriverOffset]
+	mov	eax, [DriverSize]	; Do a negative sbrk to free memory
+	neg	eax
+	invoke	___sbrk, eax
 	mov	dword [DriverOffset], 0
 .error:
 	xor	eax, eax
@@ -568,7 +576,9 @@ _ExitGraphics
 	mov	esi, [DriverOffset]
 	test	esi, esi
 	jz	.notloaded
-	invoke	_free, esi
+	mov	eax, [DriverSize]	; Do a negative sbrk to free memory
+	neg	eax
+	invoke	___sbrk, eax
 	mov	dword [DriverOffset], 0
 .notloaded:
 
