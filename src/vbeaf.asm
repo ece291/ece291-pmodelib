@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.12 2001/03/19 06:35:58 pete Exp $
+; $Id: vbeaf.asm,v 1.13 2001/03/19 06:40:04 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -406,7 +406,7 @@ proc _InitGraphics
 	; Default location (C:\vbeaf.drv)
 	mov	edi, Filename
 	mov	dword [edi], 'C:\v'
-	add	edi, 3
+	add	edi, byte 3
 	mov	esi, VBEAFName
 	mov	ecx, 10
 	rep	movsb
@@ -467,7 +467,7 @@ proc _InitGraphics
 	push	dword FAFEXT_INIT		; id parameter
 	push	esi				; af_driver parameter
 	call	edi
-	add	esp, 8				; discard parameters
+	add	esp, byte 8			; discard parameters
 
 	; Check for nice magic number return value:
 	; version bytes ASCII digits?
@@ -491,7 +491,7 @@ proc _InitGraphics
 	push	dword FAFEXT_DISPATCHCALL
 	push	esi
 	call	[esi+AF_DRIVER.OemExt]
-	add	esp, 8
+	add	esp, byte 8
 	test	eax, eax		; Not wanted
 	jz	.noext
 
@@ -529,7 +529,7 @@ proc _InitGraphics
 	push	dword FAFEXT_KEYBOARD
 	push	esi
 	call	[esi+AF_DRIVER.OemExt]
-	add	esp, 8
+	add	esp, byte 8
 
 	; Extension present?  If not, set defaults
 	test	eax, eax
@@ -651,7 +651,7 @@ proc _FindGraphicsMode
 	push	dword [edi]
 	push	esi
 	call	[esi+AF_DRIVER.GetVideoModeInfo]
-	add	esp, 12
+	add	esp, byte 12
 	test	eax, eax
 	jnz	.nextmode		; Error retrieving, go to next mode
 
@@ -725,7 +725,7 @@ proc _SetGraphicsMode
 	push	dword [ebp+.Mode]	; mode
 	push	eax			; af_driver
 	call	[eax+AF_DRIVER.SetVideoMode]
-	add	esp, 28
+	add	esp, byte 28
 
 	; Use value returned from SetVideoMode() as our return value
 
@@ -766,7 +766,7 @@ _UnsetGraphicsMode
 	jz	.noEDA
 	push	esi
 	call	edi
-	add	esp, 4
+	add	esp, byte 4
 .noEDA:
 	; Wait Until Idle
 	mov	edi, [esi+AF_DRIVER.WaitTillIdle]
@@ -774,12 +774,12 @@ _UnsetGraphicsMode
 	jz	.noWTI
 	push	esi
 	call	edi
-	add	esp, 4
+	add	esp, byte 4
 .noWTI:
 	; Restore Text Mode
 	push	esi
 	call	[esi+AF_DRIVER.RestoreTextMode]
-	add	esp, 4
+	add	esp, byte 4
 
 	; Clear InGraphicsMode flag
 	mov	byte [InGraphicsMode], 0
@@ -844,8 +844,8 @@ proc _CopyToScreen
 	push	dword [ebp+.Source]
 	push	esi			; af_driver parameter
 	call	[esi+AF_DRIVER.BitBltSys]
-	add	esp, 40			; discard parameters
-	jmp	short .done
+	add	esp, byte 40		; discard parameters
+;	jmp	short .done
 
 .NoBitBltSys:
 	; TODO: Implement a fast framebuffer version if non-accelerated driver
