@@ -5,7 +5,7 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.10 2001/04/18 19:36:20 pete Exp $
+; $Id: sb16.asm,v 1.11 2001/04/21 00:00:09 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -14,10 +14,10 @@
 
 ; for whatever reason, i can't seem to duplicate the C from DMAW.C of
 ; V:\ece291\utils\SoundBlaster Development\samples\dmaw\dmaw.c
-%define USE_SB16_PROGRAMMING	0
+%define USE_SB16_PROGRAMMING	1
 ; So for now, use SBPRO style programming.  Yes, this limits us to 8 bit
 ; sound, as i refuse to bother with the SBPRO 16bit hack.
-%define USE_SBPRO_PROGRAMMING	1
+%define USE_SBPRO_PROGRAMMING	0
 
 extern _getenv
 _getenv_arglen			equ	4
@@ -89,33 +89,39 @@ SB_UNCONFIGURED		equ	1h
 SB_UNINSTALLED		equ	2h
 SB_NOENV		equ	4h
 
+	SECTION .bss
+
+_SB16_LockData1_Start
+
+_SB16_Callback		resd	1
+
+_SB16_INT		resb	1
+_SB16_IRQ		resb	1
+_SB16_IO		resw	1
+_SB16_DMA_Low		resb	1
+_SB16_DMA_High		resb	1
+
+_SB16_Active		resd	1	; on zero, safe to change config
+
+_SB16_Bits		resb	1
+_SB16_SampleRate	resb	1
+_SB16_TimeConst		resb	1
+_SB16_Stereo		resb	1
+
+_SB16_DSPVer		resb	1
+
+_SB16_LockData1_End
 
 	SECTION	.data
 
-rcsid	db	'$Id: sb16.asm,v 1.10 2001/04/18 19:36:20 pete Exp $',0
+rcsid	db	'$Id: sb16.asm,v 1.11 2001/04/21 00:00:09 pete Exp $',0
 
-_SB16_LockData_Start
-
-SB16_Callback	dd	0
-
-SB16_INT	db	0
-SB16_IRQ	db	0
-SB16_IO		dw	0
-SB16_DMA_Low	db	0
-SB16_DMA_High	db	0
+_SB16_LockData2_Start
 
 ; on SB16_STATUS == 0 it's safe to start
-SB16_Status	dd	SB_UNCONFIGURED+SB_UNINSTALLED+SB_NOENV
-SB16_Active	dd	0	; on zero, safe to change config
+_SB16_Status	dd	SB_UNCONFIGURED+SB_UNINSTALLED+SB_NOENV
 
-SB16_Bits	db	0
-SB16_SampleRate	db	0
-SB16_TimeConst	db	0
-SB16_Stereo	db	0
-
-SB16_DSPVer	db	0
-
-_SB16_LockData_End
+_SB16_LockData2_End
 
 _BlasterEnv	db	'BLASTER', 0
 
@@ -136,7 +142,7 @@ proc _SB16_Init
 	test	eax, eax
 	jnz	.fail
 
-	invoke	_SB16_InstallISR, dword SB16_ISR
+	invoke	_SB16_InstallISR, dword _SB16_ISR
 	test	eax, eax
 	jnz	.fail
 
@@ -155,7 +161,7 @@ proc _SB16_Init
 .succeed
 	; mark installed
 	mov	ecx, ~SB_UNINSTALLED
-	and	[SB16_Status], ecx
+	and	[_SB16_Status], ecx
 	ret
 
 .fail
@@ -176,12 +182,12 @@ proc _SB16_Exit
 	; TODO skip if not installed?
 	; TODO mute speakers? out(SB16_IO+0Ch, 0D3h)
 
-	cmp	dword [SB16_Active], 0
+	cmp	dword [_SB16_Active], 0
 	jz	.notactive
 	invoke	_SB16_Stop
 .notactive
 	mov	ecx, SB_UNINSTALLED
-	or	[SB16_Status], ecx
+	or	[_SB16_Status], ecx
 
 	invoke	_SB16_EnableInterrupt, dword 0
 	test	eax, eax
@@ -216,7 +222,7 @@ proc _SB16_Start
 .AutoInit	arg	4
 .Write		arg	4
 
-	cmp	dword [SB16_Status], 0	; verify SB is ready
+	cmp	dword [_SB16_Status], 0	; verify SB is ready
 	jnz	near .fail
 
 	dec	dword [ebp+.Size]
@@ -226,7 +232,7 @@ proc _SB16_Start
 %if USE_SBPRO_PROGRAMMING	; works, if limited to 8 bit.... :/
 
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_TIME_CONSTANT
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_TimeConst]
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [_SB16_TimeConst]
 	
 	cmp	dword [ebp+.AutoInit], 0
 	jz	.singlecycle
@@ -269,8 +275,8 @@ proc _SB16_Start
 	mov	eax, DSP_READ_SAMPLE_RATE
 .notread
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, eax
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_SampleRate+1]
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_SampleRate]
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [_SB16_SampleRate+1]
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [_SB16_SampleRate]
 
 	; Write Auto/Single 8/16 bit control byte
 	mov	al, 0B0h
@@ -278,7 +284,7 @@ proc _SB16_Start
 	jz	.notAutoInit
 	add	al, 006h
 .notAutoInit
-	cmp	byte [SB16_Bits], 8
+	cmp	byte [_SB16_Bits], 8
 	jne	.not8bitsAS
 	add	al, 010h
 .not8bitsAS
@@ -290,11 +296,11 @@ proc _SB16_Start
 
 	; Write Mono/Stereo 8/16 bit control byte
 	mov	al, 000h
-	cmp	byte [SB16_Stereo], 0
+	cmp	byte [_SB16_Stereo], 0
 	je	.notStereo
 	add	al, 020h
 .notStereo
-	cmp	byte [SB16_Bits], 16
+	cmp	byte [_SB16_Bits], 16
 	jne	.not16bitsSM
 	add	al, 010h
 .not16bitsSM
@@ -309,7 +315,7 @@ proc _SB16_Start
 %endif	; USE_x_PROGRAMMING
 
 .play 
-	or	dword[SB16_Active], 1
+	or	dword[_SB16_Active], 1
 	jmp	short .ret
 .fail
 	xor	eax, eax
@@ -327,7 +333,7 @@ _SB16_Start_arglen		equ	12
 ;----------------------------------------
 proc _SB16_Stop
 
-	cmp	byte [SB16_Bits], 8
+	cmp	byte [_SB16_Bits], 8
 	jne	.16bits
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB8_AUTOINIT_STOP
 	jmp	.done
@@ -337,7 +343,7 @@ proc _SB16_Stop
 .done
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_HALT_SINGLE_CYCLE_DMA
 	xor	eax, eax
-	and	dword[SB16_Active], ~1
+	and	dword[_SB16_Active], ~1
 
 	ret
 endproc
@@ -353,7 +359,7 @@ proc _SB16_SetCallback
 .Callback	arg	4
 
 	mov	eax, [ebp+.Callback]
-	mov	[SB16_Callback], eax
+	mov	[_SB16_Callback], eax
 
 	ret
 endproc
@@ -373,7 +379,7 @@ proc _SB16_SetFormat
 .SampleRate	arg	4
 .Stereo		arg	4
 
-	mov	eax, [SB16_Active]
+	mov	eax, [_SB16_Active]
 	test	eax, eax
 	jnz	.fail
 
@@ -389,35 +395,35 @@ proc _SB16_SetFormat
 	cmp	eax, 8
 	jne	.fail
 .bits
-	mov	[SB16_Bits], al
+	mov	[_SB16_Bits], al
 
 	; accept < 65536
 	cmp	ebx, 0FFFFh
 	ja	.fail
 %if USE_SB16_PROGRAMMING
-	mov	[SB16_SampleRate], ebx
+	mov	[_SB16_SampleRate], ebx
 %elif USE_SBPRO_PROGRAMMING
 	mov	eax, 1000000
 	xor	edx, edx
 	div	ebx
 	neg	al	; al = 256 - 1e6 / sample rate
-	mov	[SB16_TimeConst], al
+	mov	[_SB16_TimeConst], al
 %endif
 
 	; treat as zero=mono/nonzero=stereo
 	test	ecx, ecx
 	jz	.mono
 %if USE_SB16_PROGRAMMING
-	mov	byte[SB16_Stereo], 1
+	mov	byte[_SB16_Stereo], 1
 	jmp	near .done
 %else
 	jmp	short .fail	; stereo sound not handled in sbpro style
 				; limitation of coding, not of card.
 %endif
 .mono
-	mov	byte[SB16_Stereo], 0
+	mov	byte[_SB16_Stereo], 0
 .done
-	and	dword[SB16_Status], ~SB_UNCONFIGURED
+	and	dword[_SB16_Status], ~SB_UNCONFIGURED
 	xor	eax, eax
 	ret
 
@@ -448,21 +454,21 @@ proc _SB16_SetMixers
 	mov	al, [ebp+.Master]
 	test	al, al
 	jz	.master_off
-	mov	dx, [SB16_IO]
+	mov	dx, [_SB16_IO]
 	add	dx, DSP_WRITE_PORT
 	mov	al, SB16_SPEAKER_ON
 	out	dx, al
 	jmp	short .master
 
 .master_off
-	mov	dx, [SB16_IO]
+	mov	dx, [_SB16_IO]
 	add	dx, DSP_WRITE_PORT
 	mov	al, SB16_SPEAKER_OFF
 	out	dx, al
 
 .master
 	push	ax
-	mov	dx, [SB16_IO]
+	mov	dx, [_SB16_IO]
 	add	dx, DSP_MIXER_ADDR
 	mov	al, SB16_VOL_MASTER
 	out	dx, al
@@ -497,13 +503,13 @@ _SB16_SetMixers_arglen		equ	8
 proc _SB16_GetChannel
 
 	xor	eax, eax
-	test	dword [SB16_Status], dword SB_NOENV
+	test	dword [_SB16_Status], dword SB_NOENV
 	jnz	.error
 
 %if USE_SB16_PROGRAMMING
-	mov	ah, [SB16_DMA_High]
+	mov	ah, [_SB16_DMA_High]
 %endif
-	mov	al, [SB16_DMA_Low]
+	mov	al, [_SB16_DMA_Low]
 	jmp	.ret
 
 .error
@@ -550,7 +556,7 @@ proc _SB16_GetEnv
 	cmp	bl, 0Fh
 	je	.done
 	cmp	dl, 0
-	jne	.done
+	je	.done
 
 	inc	eax
 	jmp	.FindSettingsLoop
@@ -562,7 +568,7 @@ proc _SB16_GetEnv
 	jne	.fail
 .ok
 	xor	eax, eax
-	and	dword [SB16_Status], dword ~SB_NOENV
+	and	dword [_SB16_Status], dword ~SB_NOENV
 	ret
 
 .fail
@@ -578,7 +584,7 @@ proc _SB16_GetEnv
 	mov	dl, [eax]
 	cmp	dl, ' '
 	jne	.IOfind
-	mov	[SB16_IO], cx
+	mov	[_SB16_IO], cx
 	or	bl, 1h
 	inc	eax
 	jmp	.FindSettingsLoop
@@ -623,13 +629,13 @@ proc _SB16_GetEnv
 .IRQdone
 	cmp	cl, 0Fh
 	ja	.fail
-	mov	[SB16_IRQ], cl
+	mov	[_SB16_IRQ], cl
 	cmp	cl, 8
 	jb	.lowirq
 	add	cl, 70h-8h-8h	; pre-subtract to account for following add
 .lowirq
 	add	cl, 8h
-	mov	[SB16_INT], cl
+	mov	[_SB16_INT], cl
 	or	bl, 2h
 	inc	eax
 	jmp	.FindSettingsLoop
@@ -652,7 +658,7 @@ proc _SB16_GetEnv
 	cmp	dl, '9'
 	ja	near .fail
 	sub	dl, '0'
-	mov	[SB16_DMA_Low], dl
+	mov	[_SB16_DMA_Low], dl
 	or	bl, 4h
 	inc	eax
 	jmp	.FindSettingsLoop
@@ -665,7 +671,7 @@ proc _SB16_GetEnv
 	cmp	dl, '9'
 	ja	near .fail
 	sub	dl, '0'
-	mov	[SB16_DMA_High], dl
+	mov	[_SB16_DMA_High], dl
 	or	bl, 8h
 	inc	eax
 	jmp	.FindSettingsLoop
@@ -685,13 +691,14 @@ proc _SB16_InstallISR
 	test	edx, edx
 	jz	.Remove
 
-	invoke	_LockArea, word cs, dword SB16_ISR, dword SB16_ISR_End-SB16_ISR
-	invoke	_LockArea, word ds, dword _SB16_LockData_Start, dword _SB16_LockData_End-_SB16_LockData_Start
+	invoke	_LockArea, word cs, dword _SB16_ISR, dword _SB16_ISR_End-_SB16_ISR
+	invoke	_LockArea, word ds, dword _SB16_LockData1_Start, dword _SB16_LockData1_End-_SB16_LockData1_Start
+	invoke	_LockArea, word ds, dword _SB16_LockData2_Start, dword _SB16_LockData2_End-_SB16_LockData2_Start
 
 	; Install the ISR
 	xor	eax, eax
 	xor	ebx, ebx
-	mov	al, [SB16_INT]
+	mov	al, [_SB16_INT]
 	mov	edx, [ebp+.ISR]
 	invoke	_Install_Int, eax, edx
 	jmp	short .succeed
@@ -699,7 +706,7 @@ proc _SB16_InstallISR
 	; or Remove it
 .Remove
 	xor	eax, eax
-	mov	al, [SB16_INT]
+	mov	al, [_SB16_INT]
 	invoke	_Remove_Int, eax
 .succeed
 	xor	eax, eax
@@ -717,10 +724,10 @@ _SB16_InstallISR_arglen		equ	4
 ; Inputs:  none
 ; Outputs: none
 ;----------------------------------------
-SB16_ISR
-	cmp	byte [SB16_Bits], 16
+_SB16_ISR
+	cmp	byte [_SB16_Bits], 16
 	jne	.8bitack
-	mov	dx, [SB16_IO]
+	mov	dx, [_SB16_IO]
 	add	dx, DSP_IRQ_STAT
 	mov	al, SB16_INTR_STAT
 	out	dx, al
@@ -732,27 +739,27 @@ SB16_ISR
 	in	al, dx	; acknowledge 16bit interrupt
 	jmp	short .SBdoneack
 .8bitack
-	mov	dx, [SB16_IO]
+	mov	dx, [_SB16_IO]
 	add	dx, DSP_DATA_AVAIL	; ack SB
 	in	al, dx
 .SBdoneack
 
         mov     al, PIC_END_OF_INT
         out     PIC_MODE, al            ; ack PIC
-	cmp	byte [SB16_IRQ], 8
+	cmp	byte [_SB16_IRQ], 8
 	jb	.donePicAck
 	mov	dx, SLAVE_PIC
 	out	dx, al
 .donePicAck
 
-        cmp     dword [SB16_Callback], 0
+        cmp     dword [_SB16_Callback], 0
         je      .done
-        call    dword [SB16_Callback]	; call user callback
+        call    dword [_SB16_Callback]	; call user callback
 
 .done
 	xor	eax, eax		; don't chain interrupts
 	ret
-SB16_ISR_End
+_SB16_ISR_End
 
 ;----------------------------------------
 ; void SB16_EnableInterrupt(bool Enable)
@@ -770,10 +777,10 @@ proc _SB16_EnableInterrupt
 
 	; Unmask the Interrupt
 	xor	eax, eax
-	mov	al, [SB16_IRQ]
+	mov	al, [_SB16_IRQ]
 	invoke	_Init_IRQ
 	xor	eax, eax
-	mov	al, [SB16_IRQ]
+	mov	al, [_SB16_IRQ]
 	invoke	_Enable_IRQ, eax
 
 	xor	eax, eax
@@ -782,7 +789,7 @@ proc _SB16_EnableInterrupt
 .Disable
 	; Mask the Interrupt
 	xor	eax, eax
-	mov	al, [SB16_IRQ]
+	mov	al, [_SB16_IRQ]
 	; invoke	_Disable_IRQ, eax	; unnecessary?
 	invoke	_Exit_IRQ
 
@@ -803,7 +810,7 @@ proc _SB16_DSPWrite
 .Port	arg	4
 .Value	arg	4
 
-	mov	dx, [SB16_IO]
+	mov	dx, [_SB16_IO]
 	add	dx, DSP_WRITE_PORT
 .wait
 	;mov ax, 1680h		; yield scheduling to windows
@@ -833,7 +840,7 @@ proc _SB16_DSPRead
 
 .Port	arg	4
 
-	mov	dx, [SB16_IO]
+	mov	dx, [_SB16_IO]
 	add	dx, DSP_DATA_AVAIL
 .wait
 	;mov ax, 1680h		; yield scheduling to windows
@@ -860,7 +867,7 @@ _SB16_DSPRead_arglen		equ	4
 proc _SB16_Reset
 
 	;write a '1' to the Reset port 2x6h and wait for 3us
-	mov dx, word[SB16_IO]
+	mov dx, word[_SB16_IO]
 	add dx, DSP_RESET       ; in SBcons.inc     
 	mov al, 1
 	out dx, al
@@ -889,7 +896,7 @@ proc _SB16_Reset
 	jz  .rstdn
 
 	; read from READ DATA port
-	mov dx, word[SB16_IO]
+	mov dx, word[_SB16_IO]
 	add dx, DSP_READ_PORT
 .agn:
 	in  al, dx
