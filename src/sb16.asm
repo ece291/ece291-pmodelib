@@ -5,7 +5,7 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.6 2001/04/07 20:52:00 mu Exp $
+; $Id: sb16.asm,v 1.7 2001/04/07 22:08:05 mu Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -171,7 +171,6 @@ _SB16_Init_arglen		equ	4
 ;----------------------------------------
 proc _SB16_Exit
 
-	; TODO stop sounds if playing.
 	; TODO skip if not installed?
 	; TODO mute speakers? out(SB16_IO+0Ch, 0D3h)
 
@@ -406,8 +405,13 @@ proc _SB16_SetFormat
 	; treat as zero=mono/nonzero=stereo
 	test	ecx, ecx
 	jz	.mono
+%if USE_SB16_PROGRAMMING
 	mov	byte[SB16_Stereo], 1
-	jmp	.done
+	jmp	near .done
+%else
+	jmp	short .fail	; stereo sound not handled in sbpro style
+				; limitation of coding, not of card.
+%endif
 .mono
 	mov	byte[SB16_Stereo], 0
 .done

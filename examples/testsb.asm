@@ -4,7 +4,7 @@
 ; Code history: 
 ;  Original Code - only tests 8bit code, as sb16.asm doesn't yet do 16bit
 ;
-; $Id: testsb.asm,v 1.1 2001/04/07 21:06:34 mu Exp $
+; $Id: testsb.asm,v 1.2 2001/04/07 22:08:05 mu Exp $
 ;
 ; Note - the various _getchar, _printf calls are for example/testing
 ; convenience.  They are still not for use in final projects.
@@ -171,6 +171,15 @@ _main
 	call	_printf
 	add	esp, 4
 
+	push	dword .sbstop
+	call	_printf
+	add	esp, 4
+	invoke	_SB16_Stop
+	; SB16_Stop doesn't report error
+	push	dword .done
+	call	_printf
+	add	esp, 4
+
 	push	dword .sbsetmix
 	call	_printf
 	add	esp, 4
@@ -215,6 +224,7 @@ _main
 .sbsetf		db	"[SB16_SetFormat...", 0
 .sbsetmix	db	"[SB16_SetMixers...", 0
 .dmastop	db	"[DMA_Stop...",0
+.sbstop		db	"[SB16_Stop...",0
 .sbexit		db	"[SB16_Exit...",0
 .done		db	" Done]", 13, 10, 0
 .info		db	"[D%d H%d]", 13, 10, 0
