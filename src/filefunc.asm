@@ -1,7 +1,7 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: filefunc.asm,v 1.13 2001/03/17 04:44:23 pete Exp $
+; $Id: filefunc.asm,v 1.14 2001/03/17 04:45:44 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -59,19 +59,19 @@ proc _OpenFile
 	; Error using LFN, use short FN API instead
 	cmp	word [ebp + .WriteTo], 1
 	je	.CreateNew
-	mov	dword [DPMI_EAX], 3D00h	; [DOS] Open Existing File (Read Only)
-	jmp	.DoOpen
+	mov	word [DPMI_EAX], 3D00h	; [DOS] Open Existing File (Read Only)
+	jmp	short .DoOpen
 .CreateNew:
-	mov	dword [DPMI_EAX], 3C00h	; [DOS] Create or Truncate File
+	mov	word [DPMI_EAX], 3C00h	; [DOS] Create or Truncate File
 .DoOpen:
-	mov	dword [DPMI_ECX], 0
-	mov	dword [DPMI_EDX], 0
+	mov	word [DPMI_ECX], 0
+	mov	word [DPMI_EDX], 0
 	mov	bx, 21h
 	call	DPMI_Int
 	test	word [DPMI_FLAGS], 1	; Test the carry flag
 	jne	.error
 
-	mov	eax, [DPMI_EAX]		; Recover file handle
+	movzx	eax, word [DPMI_EAX]	; Recover file handle
 
 	jmp	short .done
 .error:
