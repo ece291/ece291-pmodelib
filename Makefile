@@ -1,7 +1,7 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.11 2001/04/07 21:06:34 mu Exp $
+# $Id: Makefile,v 1.12 2001/04/10 09:09:00 pete Exp $
 
 # set some useful paths
 OBJ = obj
@@ -12,7 +12,7 @@ ASMFLAGS = -f coff -iinclude/
 
 VPATH = examples src
 
-PROGRAMS = mousetst testint testnet tcpweb testsb
+PROGRAMS = mousetst testint testnet tcpweb tcpcli tcpsrv testsb
 
 OBJS = lib_load.o vbeaf.o textmode.o gfxfiles.o filefunc.o socket.o \
        dpmi_int.o dpmi_mem.o int_wrap.o rmcbwrap.o netbios.o misc.o \
@@ -51,4 +51,6 @@ mousetst: examples/mousetst.exe
 testint: examples/testint.exe
 testnet: examples/testnet.exe
 tcpweb: examples/tcpweb.exe
+tcpcli: examples/tcpcli.exe
+tcpsrv: examples/tcpsrv.exe
 testsb: examples/testsb.exe
