@@ -3,8 +3,9 @@
 ;
 ; Code history: 
 ;  Original Code - only tests 8bit code, as sb16.asm doesn't yet do 16bit
+;  testsb16 - tests 16bit code
 ;
-; $Id: testsb16.asm,v 1.1 2001/04/21 00:01:59 pete Exp $
+; $Id: testsb16.asm,v 1.2 2001/04/22 18:15:25 pete Exp $
 ;
 ; Note - the various _getchar, _printf calls are for example/testing
 ; convenience.  They are still not for use in final projects.
