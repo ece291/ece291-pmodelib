@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.13 2001/03/19 06:40:04 pete Exp $
+; $Id: vbeaf.asm,v 1.14 2001/03/19 06:47:49 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -348,8 +348,8 @@ endproc
 ;----------------------------------------
 proc _InitGraphics
 
-.kbIRQ		arg	4
 .kbINT		arg	4
+.kbIRQ		arg	4
 .kbPort		arg	4
 
 	push	es			; Set up selectors C code expects
