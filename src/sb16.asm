@@ -5,7 +5,7 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.2 2001/04/03 06:18:41 mu Exp $
+; $Id: sb16.asm,v 1.3 2001/04/06 02:39:58 mu Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -60,15 +60,19 @@ SB16_PLAY_MONO		EQU	0010h
 SB16_PLAY_STEREO	EQU	0030h
 SB16_AUTOINIT_STOP	EQU	00D9h
 
+SB16_SPEAKER_ON	EQU	00D1h
+SB16_SPEAKER_OFF	EQU	00D3h
 SB16_VOL_VOICE	EQU	04h
 SB16_VOL_MIC	EQU	0Ah
 SB16_VOL_MASTER	EQU	22h
 SB16_VOL_FM	EQU	26h
 SB16_VOL_CD	EQU	28h
 SB16_VOL_LINE	EQU	2Eh
+SB16_INTR_STAT	EQU	82h
 
 PIC_END_OF_INT  EQU     20h
 PIC_MODE        EQU     20h
+SLAVE_PIC	EQU    0A0h
 
 
 ; STUFF
@@ -208,66 +212,71 @@ proc _SB16_Start
 	cmp	dword [ebp+.Size], 0FFFFh	; only accept real sizes
 	ja	near .fail
 
+%if 0
+	; try old way.
+
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_TIME_CONSTANT
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword 165
+	
+	cmp	dword [ebp+.AutoInit], 0
+	jz	.singlecycle
+
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_BLOCK_SIZE
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+0]
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword 01Ch
+	xor	eax, eax
+	jmp	short .ret
+
+.singlecycle
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword 014h
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+0]
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
+	xor	eax, eax
+	jmp	short .ret
+
+%elif 1
 	; set sample rate
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_SAMPLE_RATE
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_SampleRate+1]
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_SampleRate]
 
-	cmp	byte [SB16_Bits], 16
-	je	near .16bit
-
+	; Write Auto/Single 8/16 bit control byte
+	mov	al, 0B0h
 	cmp	dword [ebp+.AutoInit], 0
-	jz	.SingleCycle8
+	jz	.notAutoInit
+	add	al, 006h
+.notAutoInit
+	cmp	byte [SB16_Bits], 8
+	jne	.not8bitsAS
+	add	al, 010h
+.not8bitsAS
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword eax
 
-	; 8 bit AutoInit
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB8_AUTOINIT_PLAY
-	jmp	short .SB8STorM
-.SingleCycle8
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB8_SINGLECYCLE_PLAY
-
-.SB8STorM
+	; Write Mono/Stereo 8/16 bit control byte
+	mov	al, 000h
 	cmp	byte [SB16_Stereo], 0
-	jnz	.SB8stereo
-	jz	.SB8mono
+	je	.notStereo
+	add	al, 020h
+.notStereo
+	cmp	byte [SB16_Bits], 8
+	jne	.not8bitsSM
+	add	al, 010h
+.not8bitsSM
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword eax
 
-.SB8stereo
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB8_PLAY_STEREO
-	jmp	short .SBlength
-.SB8mono
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB8_PLAY_MONO
-	jmp	short .SBlength
-
-
-.16bit
-	cmp	dword [ebp+.AutoInit], 0
-	jz	.SingleCycle8
-
-	; 16 bit AutoInit
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB16_AUTOINIT_PLAY
-	jmp	short .SB8STorM
-.SingleCycle16
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB16_SINGLECYCLE_PLAY
-
-.SB16STorM
-	cmp	byte [SB16_Stereo], 0
-	jnz	.SB16stereo
-	jz	.SB16mono
-
-.SB16stereo
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB16_PLAY_STEREO
-	jmp	short .SBlength
-.SB16mono
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB16_PLAY_MONO
-
-.SBlength
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size]
+	; set length
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+0]
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
-	jmp	.done
+
+	xor	eax, eax
+	jmp	.ret
+%endif
 
 .fail
 	xor	eax, eax
 	inc	eax
-.done
+.ret
 	ret
 endproc
 _SB16_Start_arglen		equ	12
@@ -377,7 +386,7 @@ _SB16_SetFormat_arglen		equ	12
 ;	   CD, volume for CD audio
 ;	   Line, volume for data line
 ;	   Mic, volume for Mic input
-;	   0 is minimum volume, 63 is maximum.
+;	   0 is minimum volume, 63 is maximum.	; TODO: checkme
 ;	   If MSB (80h) set, that mixer will not be changed.
 ; Outputs: On error, eax=1, else eax=0
 ;----------------------------------------
@@ -394,10 +403,29 @@ proc _SB16_SetMixers
 	mov	al, [ebp+.Master]
 	test	al, 80h
 	jnz	.pcm
+	test	al, al
+	jz	.master_off
+	mov	dx, [SB16_IO]
+	add	dx, DSP_WRITE_PORT
+	mov	al, SB16_SPEAKER_ON
+	out	dx, al
+	jmp	short .master
+
+.master_off
+	mov	dx, [SB16_IO]
+	add	dx, DSP_WRITE_PORT
+	mov	al, SB16_SPEAKER_OFF
+	out	dx, al
+
+.master
 	push	ax
-	invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_MASTER
+	mov	dx, [SB16_IO]
+	add	dx, DSP_MIXER_ADDR
+	mov	al, SB16_VOL_MASTER
+	out	dx, al
 	pop	ax
-	invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
+	add	dx, DSP_MIXER_DATA-DSP_MIXER_ADDR
+	out	dx, al
 .pcm
 	mov	al, [ebp+.PCM]
 	test	al, 80h
@@ -407,22 +435,22 @@ proc _SB16_SetMixers
 	pop	ax
 	invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
 .fm
-	mov	al, [ebp+.FM]
-	test	al, 80h
-	jnz	.cd
-	push	ax
-	invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_FM
-	pop	ax
-	invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
-.cd
-	mov	al, [ebp+.CD]
-	test	al, 80h
-	jnz	.line
-	push	ax
-	invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_CD
-	pop	ax
-	invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
-.line
+	;mov	al, [ebp+.FM]
+	;test	al, 80h
+	;jnz	.cd
+	;push	ax
+	;invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_FM
+	;pop	ax
+	;invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
+;.cd
+	;mov	al, [ebp+.CD]
+	;test	al, 80h
+	;jnz	.line
+	;push	ax
+;invoke	_SB16_DSPWrite, dword DSP_MIXER_ADDR, dword SB16_VOL_CD
+	;pop	ax
+	;invoke	_SB16_DSPWrite, dword DSP_MIXER_DATA, eax
+.;line
 	mov	al, [ebp+.Line]
 	test	al, 80h
 	jnz	.mic
@@ -643,6 +671,7 @@ proc _SB16_InstallISR
 	xor	eax, eax
 	xor	ebx, ebx
 	mov	al, [SB16_INT]
+	mov	edx, [ebp+.ISR]
 	invoke	_Install_Int, eax, edx
 	jmp	short .succeed
 
@@ -668,12 +697,11 @@ _SB16_InstallISR_arglen		equ	4
 ; Outputs: none
 ;----------------------------------------
 SB16_ISR
-	; TODO: handle 16 bit ISR stuff
-	; TODO: handle IRQ acking above IRQ7
 	cmp	byte [SB16_Bits], 16
 	jne	.8bitack
 	mov	dx, [SB16_IO]
 	add	dx, DSP_IRQ_STAT
+	mov	al, SB16_INTR_STAT
 	out	dx, al
 	add	dx, DSP_MIXER_DATA-DSP_IRQ_STAT
 	in	al, dx
@@ -681,6 +709,7 @@ SB16_ISR
 	jz	.SBdoneack
 	add	dx, DSP_DATA_AVL16-DSP_MIXER_DATA
 	in	al, dx	; acknowledge 16bit interrupt
+	jmp	short .SBdoneack
 .8bitack
 	mov	dx, [SB16_IO]
 	add	dx, DSP_DATA_AVAIL	; ack SB
@@ -689,6 +718,11 @@ SB16_ISR
 
         mov     al, PIC_END_OF_INT
         out     PIC_MODE, al            ; ack PIC
+	cmp	byte [SB16_IRQ], 8
+	jb	.donePicAck
+	mov	dx, SLAVE_PIC
+	out	dx, al
+.donePicAck
 
         cmp     dword [SB16_Callback], 0
         je      .done
@@ -750,8 +784,37 @@ proc _SB16_DSPWrite
 .Value	arg	4
 
 	mov	dx, [SB16_IO]
-	mov	al, [ebp+.Value]
 	add	dx, DSP_WRITE_PORT
+.wait
+	;mov ax, 1680h		; yield scheduling to windows
+	;int 2Fh		; (don't take 100% cpu for no reason)
+
+	in	al, dx
+	test	al, 80h
+	jnz	.wait
+
+	sub	dx, DSP_WRITE_PORT
+	add	dx, [ebp+.Port]
+	mov	al, [ebp+.Value]
+	out	dx, al
+
+	ret
+endproc
+_SB16_DSPWrite_arglen		equ	8
+
+;----------------------------------------
+; unsigned char SB16_DSPRead(int Port)
+; Purpose: Read Value to Port, after delaying for old cards
+; Inputs:  Port, add IOBASE to this for chosen IO port
+;	   Value, lowest byte of value to be written to DSP
+; Outputs: al=data
+;----------------------------------------
+proc _SB16_DSPRead
+
+.Port	arg	4
+
+	mov	dx, [SB16_IO]
+	add	dx, DSP_DATA_AVAIL
 .wait
 	;mov ax, 1680h		; yield scheduling to windows
 	;int 2Fh		; (don't take 100% cpu for no reason)
@@ -760,13 +823,13 @@ proc _SB16_DSPWrite
 	test	al, 80h
 	jz	.wait
 
-	sub	dx, DSP_WRITE_PORT
+	sub	dx, DSP_DATA_AVAIL
 	add	dx, [ebp+.Port]
-	out	dx, al
+	in	al, dx
 
 	ret
 endproc
-_SB16_DSPWrite_arglen		equ	4
+_SB16_DSPRead_arglen		equ	4
 
 ;----------------------------------------
 ; bool SB16_Reset()
@@ -776,40 +839,48 @@ _SB16_DSPWrite_arglen		equ	4
 ;----------------------------------------
 proc _SB16_Reset
 
-	test	dword [SB16_Status], SB_NOENV 	; don't try w/o info
-	jnz	.fail
+	;write a '1' to the Reset port 2x6h and wait for 3us
+	mov dx, word[SB16_IO]
+	add dx, DSP_RESET       ; in SBcons.inc     
+	mov al, 1
+	out dx, al
 
-	invoke	_SB16_DSPWrite, dword DSP_RESET, dword 1
+	add dx, DSP_DATA_AVAIL - DSP_RESET
+	mov cx, 8
+.burn1:
+	in  al, dx          ; wait for 3us
+	loop    .burn1
 
-	mov	dx, [SB16_IO]
-	add	dx, DSP_DATA_AVAIL
-	mov	ecx, 8
-.wait3us
-	in	al, dx
-	loop	.wait3us
+	; write a '0' to the Reset port
+	add dx, DSP_RESET - DSP_DATA_AVAIL
+	mov al, 0
+	out dx, al
 
-	add	dx, DSP_RESET-DSP_DATA_AVAIL
-	xor	al, al
-	out	dx, al
+	add dx, DSP_DATA_AVAIL - DSP_RESET
+	mov cx, 400
+.burn2:
+	in  al, dx          ; wait 100+us
+	loop    .burn2
 
-	add	dx, DSP_DATA_AVAIL-DSP_RESET
-	mov	ecx, 400
-.wait100us
-	in	al, dx
-	loop	.wait100us
+	; check Read_Buf Status to ensure there is data b4 reading Read Data port
+	in  al, dx
+	test    al, 80h
+	mov al, 0
+	jz  .rstdn
 
-	in	al, dx
-	test	al, 80h
-	jz	.fail
+	; read from READ DATA port
+	mov dx, word[SB16_IO]
+	add dx, DSP_READ_PORT
+.agn:
+	in  al, dx
+	cmp al, DSP_READY
+	jne .rstdn
+	xor eax, eax
+	jmp .beenReset
 
-	add	dx, DSP_READ_PORT-DSP_DATA_AVAIL
-	in	al, dx
-	mov	[SB16_DSPVer], al	;TODO: CHECKME
-	xor	eax, eax
-	ret
-
-.fail
+.rstdn:
 	xor	eax, eax
 	inc	eax
+.beenReset:
 	ret
 endproc
