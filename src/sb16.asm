@@ -5,7 +5,7 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.4 2001/04/06 16:14:11 mu Exp $
+; $Id: sb16.asm,v 1.5 2001/04/06 16:19:57 mu Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -257,7 +257,7 @@ proc _SB16_Start
 	add	al, 010h
 .not8bitsAS
 	cmp	dword [ebp+.Write], 0
-	jz	.notreadAS
+	jnz	.notreadAS
 	or	al, 008h
 .notreadAS
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword eax
