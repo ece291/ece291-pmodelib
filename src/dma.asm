@@ -6,7 +6,7 @@
 ;	- MikMod
 ;	- GUS SDK (!)
 ;
-; $Id: dma.asm,v 1.7 2001/04/18 18:43:36 pete Exp $
+; $Id: dma.asm,v 1.8 2003/05/01 04:01:22 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -78,7 +78,7 @@ DMA7_PAGE       equ     8Ah             ; chan 7 page register
 
         SECTION .data
 
-rcsid	db	'$Id: dma.asm,v 1.7 2001/04/18 18:43:36 pete Exp $',0
+rcsid	db	'$Id: dma.asm,v 1.8 2003/05/01 04:01:22 pete Exp $',0
 
 	ALIGN 4
 mydma
@@ -210,6 +210,8 @@ proc _DMA_Allocate_Mem
 
         ; Allocate twice as much memory as we really need
         mov     ebx, [ebp+.Size]
+        cmp		ebx, 0x10000             ; error out if request is over a page
+        ja		.error
         shl     ebx, 1                  ; 2x
         add     ebx, 15                 ; correct for rounding
         shr     ebx, 4                  ; 16-byte paragraphs
@@ -237,6 +239,28 @@ proc _DMA_Allocate_Mem
         je      .save
 
         add     eax, [ebp+.Size]
+        and     eax, 0xFFFF0000	; 
+        ; we also need to update the selector to point to the second half
+        push	eax
+        push	ebx
+        push	ecx
+        push	edx
+        
+        mov     eax, [ebp+.Selector]
+        mov     bx, [eax]
+        mov     ax, 6
+        int     31h
+        
+        add     dx, [ebp+.Size]
+        adc     cx, [ebp+.Size+2]
+        xor		dx, dx
+        mov     ax, 7
+        int     31h
+        
+        pop     edx
+        pop     ecx
+        pop     ebx
+        pop     eax
 
 .save:
         ; Save LinearAddress
