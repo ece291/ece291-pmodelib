@@ -1,7 +1,7 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.15 2001/04/17 23:51:47 pete Exp $
+# $Id: Makefile,v 1.16 2001/04/21 00:02:05 pete Exp $
 
 # set some useful paths
 OBJ = obj
@@ -13,7 +13,7 @@ ASMFLAGS = -f coff -iinclude/
 VPATH = examples src
 
 PROGRAMS_BASE = mousetst testint testnet tcpweb tcpcli tcpsrv udpcli udpsrv \
-	testsb
+	testsb testsb16
 
 PROGRAMS = $(addsuffix .exe, $(addprefix examples/, $(PROGRAMS_BASE)))
 
