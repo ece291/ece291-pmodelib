@@ -1,7 +1,7 @@
 ; Socket (TCP/IP, UDP/IP) functions header file
 ;  By Peter Johnson, 2001
 ;
-; $Id: socket.inc,v 1.3 2001/04/10 09:08:09 pete Exp $
+; $Id: socket.inc,v 1.4 2001/12/14 19:31:20 pete Exp $
 
 	EXTERN _InitSocket
 	EXTERN _ExitSocket
@@ -29,6 +29,8 @@
 	EXTERN _Socket_gethostbyaddr
 	EXTERN _Socket_gethostbyname
 	EXTERN _Socket_gethostname
+	EXTERN _Socket_getsockopt
+	EXTERN _Socket_setsockopt
 	EXTERN _Socket_GetLastError
 
 _Socket_SetCallback_arglen	equ	4
@@ -55,3 +57,5 @@ _Socket_create_arglen		equ	4
 _Socket_gethostbyaddr_arglen	equ	4
 _Socket_gethostbyname_arglen	equ	4
 _Socket_gethostname_arglen	equ	8
+_Socket_getsockopt_arglen	equ	20
+_Socket_setsockopt_arglen	equ	20

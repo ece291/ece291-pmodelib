@@ -5,7 +5,7 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.10 2001/04/17 23:40:31 pete Exp $
+; $Id: socket.asm,v 1.11 2001/12/14 19:31:20 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "dpmi_int.inc"
@@ -47,6 +47,8 @@ SOCKET_INSTALLCALLBACK	equ	5015h
 SOCKET_REMOVECALLBACK	equ	5016h
 SOCKET_ADDCALLBACK	equ	5017h
 SOCKET_GETCALLBACKINFO	equ	5018h
+SOCKET_GETSOCKOPT	equ	5019h
+SOCKET_SETSOCKOPT	equ	5020h
 
 ; Maximum lengths
 STRING_MAX		equ	256
@@ -69,7 +71,7 @@ HostEnt_AddrList_data	resd	HOSTENT_ADDRLIST_MAX
 
 	SECTION .data
 
-rcsid	db	'$Id: socket.asm,v 1.10 2001/04/17 23:40:31 pete Exp $',0
+rcsid	db	'$Id: socket.asm,v 1.11 2001/12/14 19:31:20 pete Exp $',0
 
 ALTMPX_Signature	db	'ECE291  ', 'EX291   ', 0
 ALTMPX_MinVersion	equ	0100h
@@ -741,6 +743,57 @@ proc _Socket_gethostname
 .NameLen	arg	4
 
 	callvdd	SOCKET_GETHOSTNAME
+	ret
+endproc
+
+;----------------------------------------
+; bool Socket_getsockopt(unsigned int Socket, int Level, int OptName
+;  char *OptVal, int *OptLen);
+; Purpose: Retrieves a socket option.
+; Inputs:  Socket, the socket
+;          Level, the level at which the option is defined.  Supported levels
+;           are SOL_SOCKET (socket level) and IPPROTO_TCP (TCP level).
+;          OptName, the option for which the value is to be retreived.
+;          OptVal, the buffer in which the value for the requested option is
+;           to be returned.
+;          OptLen, (pointer to) the size of the OptVal buffer.
+; Outputs: Returns 1 on error, otherwise 0.
+;          OptVal filled with the option value.
+;----------------------------------------
+proc _Socket_getsockopt
+
+.Socket		arg	4
+.Level		arg	4
+.OptName	arg	4
+.OptVal		arg	4
+.OptLen		arg	4
+
+	callvdd SOCKET_GETSOCKOPT
+	ret
+endproc
+
+;----------------------------------------
+; bool Socket_setsockopt(unsigned int Socket, int Level, int OptName
+;  char *OptVal, int OptLen);
+; Purpose: Sets a socket option.
+; Inputs:  Socket, the socket
+;          Level, the level at which the option is defined.  Supported levels
+;           are SOL_SOCKET (socket level) and IPPROTO_TCP (TCP level).
+;          OptName, the option for which the value is to be set.
+;          OptVal, the buffer in which the value for the requested option is
+;           supplied.
+;          OptLen, the size of the OptVal buffer.
+; Outputs: Returns 1 on error, otherwise 0.
+;----------------------------------------
+proc _Socket_setsockopt
+
+.Socket		arg	4
+.Level		arg	4
+.OptName	arg	4
+.OptVal		arg	4
+.OptLen		arg	4
+
+	callvdd SOCKET_SETSOCKOPT
 	ret
 endproc
 
