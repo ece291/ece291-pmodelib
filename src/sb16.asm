@@ -5,7 +5,7 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.3 2001/04/06 02:39:58 mu Exp $
+; $Id: sb16.asm,v 1.4 2001/04/06 16:14:11 mu Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -41,7 +41,8 @@ DSP_READ_PORT                   EQU     000Ah
 DSP_READY                       EQU     00AAh
 DSP_RESET                       EQU     0006h
 DSP_TIME_CONSTANT               EQU     0040h
-DSP_SAMPLE_RATE			EQU	0041h
+DSP_WRITE_SAMPLE_RATE		EQU	0041h
+DSP_READ_SAMPLE_RATE		EQU	0042h
 DSP_WRITE_PORT                  EQU     000Ch
 DSP_MIXER_ADDR                  EQU     0004h
 DSP_MIXER_DATA                  EQU     0005h
@@ -212,8 +213,7 @@ proc _SB16_Start
 	cmp	dword [ebp+.Size], 0FFFFh	; only accept real sizes
 	ja	near .fail
 
-%if 0
-	; try old way.
+%if 1	; works, if limited to 8 bit.... :/
 
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_TIME_CONSTANT
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword 165
@@ -235,9 +235,14 @@ proc _SB16_Start
 	xor	eax, eax
 	jmp	short .ret
 
-%elif 1
+%elif 1	; makes the speaker do weird things.
 	; set sample rate
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword DSP_SAMPLE_RATE
+	mov	eax, DSP_WRITE_SAMPLE_RATE
+	cmp	dword [ebp+.Write], 0
+	jnz	.notread
+	mov	eax, DSP_READ_SAMPLE_RATE
+.notread
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, eax
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_SampleRate+1]
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [SB16_SampleRate]
 
@@ -251,6 +256,10 @@ proc _SB16_Start
 	jne	.not8bitsAS
 	add	al, 010h
 .not8bitsAS
+	cmp	dword [ebp+.Write], 0
+	jz	.notreadAS
+	or	al, 008h
+.notreadAS
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword eax
 
 	; Write Mono/Stereo 8/16 bit control byte
