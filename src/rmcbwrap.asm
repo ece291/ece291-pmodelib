@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie.
 ;
-; $Id: rmcbwrap.asm,v 1.6 2001/04/17 23:40:31 pete Exp $
+; $Id: rmcbwrap.asm,v 1.7 2002/01/08 03:15:16 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 %include "dpmi_int.inc"
@@ -46,7 +46,7 @@ _RMCB_RM_Addresses	resd MAX_RMCBS
 
         SECTION .data
 
-rcsid	db	'$Id: rmcbwrap.asm,v 1.6 2001/04/17 23:40:31 pete Exp $',0
+rcsid	db	'$Id: rmcbwrap.asm,v 1.7 2002/01/08 03:15:16 pete Exp $',0
 
         ALIGN 4
 
@@ -61,6 +61,14 @@ _RMCB_Virgin    db      1
 %macro RMCBWRAP 1
         ALIGN 4
 _RMCB_Wrap%{1}:
+	; Windows XP DPMI bug workaround: ES can be 0, so replace with our DS.
+	mov	ax, es
+	test	ax, ax
+	jnz	.noxphack
+	mov	ax, [cs:___djgpp_ds_alias]
+	mov	es, ax
+.noxphack:
+
 	o16 push es
 	o16 push ds
 	o16 push es
