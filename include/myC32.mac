@@ -3,7 +3,7 @@
 ;
 ; Originally included in NASM.  Modifications by Peter Johnson, 1999.
 ;
-; $Id: myC32.mac,v 1.5 2001/12/06 03:10:36 pete Exp $
+; $Id: myC32.mac,v 1.6 2002/03/31 08:18:22 mu Exp $
 
 %imacro proc 1                  ; begin a procedure definition
 %ifctx proc
@@ -14,6 +14,7 @@
 %1:       push  ebp
           mov   ebp, esp
 %assign %$arg 8
+%assign %$local 0
 ;%assign %$argnum 0
 %define %$procname %1
 %endif
@@ -26,10 +27,19 @@
 %assign %$arg %1+%$arg
 %endmacro
 
+%imacro local 0-1 4		; like arg, but declare c local variables
+%if %$local == 0
+          add   esp, .STACK_FRAME_SIZE
+%endif
+%assign %$local %$local-%1
+%00       equ %$local
+%endmacro
+
 %imacro endproc 0
 %ifnctx proc
 %error Mismatched `endproc'/`proc'
 %else
+.STACK_FRAME_SIZE	equ	%$local	; stack size known by end
 ;        mov     esp, ebp
 ;        pop     ebp
 %ifdef LEGACY_ENDPROC
