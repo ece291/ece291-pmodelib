@@ -1,4 +1,4 @@
-<!-- $Id: sockets.html,v 1.1 2001/04/07 16:56:31 pete Exp $ -->
+<!-- $Id: sockets.html,v 1.2 2001/04/10 09:17:46 pete Exp $ -->
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
@@ -23,7 +23,7 @@ the operation of these functions.</p>
 <a href="#InitSocket">InitSocket()</a> and
 <a href="#ExitSocket">ExitSocket()</a> function similarly to the initialization
 and shutdown functions in other modules of pmodelib.
-<a href="#Socket_InstallCallback">Socket_InstallCallback()</a> is essentially a
+<a href="#Socket_AddCallback">Socket_AddCallback()</a> is essentially a
 mapping of WinSock's
 <a href="http://www.sockets.com/winsock.htm#AsyncSelect">WSAAsyncSelect()</a>
 function into the DOS assembly environment.</p>
@@ -196,7 +196,29 @@ error caused the error condition, call
  </ul>
 </ul>
 
-<h3><a name='Socket_InstallCallback'>bool Socket_InstallCallback(unsigned int Socket, unsigned int EventMask, unsigned int HandlerAddress)</a></h3>
+<h3><a name='Socket_SetCallback'>bool Socket_SetCallback(unsigned int HandlerAddress)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets up a callback for socket event notification.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>HandlerAddress, address of the callback procedure, called as:<br>
+  void Callback(unsigned int Socket, unsigned int Event)<br>
+  (where Event is the bitmask of the event triggering the callback).</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>To uninstall the callback, call this function with HandlerAddress=0.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_AddCallback'>bool Socket_AddCallback(unsigned int Socket, unsigned int EventMask)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
@@ -208,7 +230,6 @@ error caused the error condition, call
   <li>EventMask, bitmask designating which events to trigger the callback for.
   This should be an OR ( | ) of a collection of the
   <a href="#EventConstants">event constants</a>.</li>
-  <li>HandlerAddress, address of the callback procedure.</li>
  </ul>
  <li>Output</li>
  <ul>
@@ -216,9 +237,11 @@ error caused the error condition, call
  </ul>
  <li>Notes</li>
  <ul>
-  <li>Callback procedure should be declared as:<br>
-  void Callback(unsigned int Socket, unsigned int Event)<br>
-  (where Event is the bitmask of the events triggered).</li>
+  <li>Assumes <a href="#Socket_SetCallback">Socket_SetCallback()</a> has been
+  called to set the callback address.</li>
+  <li>If called more than once for a particular socket, only the last call's
+  EventMask is active.  To disable callbacks for a particular socket, set
+  EventMask=0.</li>
  </ul>
 </ul>
 
