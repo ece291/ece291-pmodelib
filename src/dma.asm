@@ -1,5 +1,11 @@
 ; DMA interface code (used primarily by sound routines)
 ;  By Peter Johnson, 1999
+;
+; Code history (C version):
+;       - Allegro
+;	- MikMod
+;	- GUS SDK (!)
+;
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -211,6 +217,7 @@ proc _DMA_Allocate_Mem
         mov     ebx, [ebp+%$Selector]
         mov     [ebx], dx       ; Save selector
 
+        and     eax, 0FFFFh     ; Mask off high 16 bits of eax
         shl     eax, 4          ; Change the returned segment into a linear address
 
         ; If it crosses a page boundary, use the second half of the block
@@ -250,10 +257,11 @@ endproc
 ; Purpose: Starts the DMA controller for the specified channel, transferring
 ;          size bytes from addr (the block must not cross a page boundary).
 ; Inputs:  Channel, DMA channel to start controller on
-;          Address, address to transfer data from
+;          Address, linear address to transfer data from
 ;          Size, number of bytes to transfer
 ;          auto_init, if set, use the endless repeat DMA mode
 ;          Write, if set, use write mode, otherwise use read mode
+;          (use read mode when doing sound input)
 ; Outputs: None
 ;----------------------------------------
 proc _DMA_Start
@@ -278,8 +286,8 @@ proc _DMA_Start
 
         mov     eax, [ebp+%$Size]       ; eax = size
 
-        shr     edx, 4
-        jz      .not16bit               ; 16 bit data is halved
+        cmp     edx, 4
+        jb      .not16bit               ; 16 bit data is halved
 
         shr     ebx, 1                  ; address/=2
         shr     eax, 1                  ; size/=2
@@ -343,6 +351,7 @@ proc _DMA_Start
         ; enable channel
         mov     dx, [esi+DMA_ENTRY.single]
         mov     al, [esi+DMA_ENTRY.dma_enable]
+        out     dx, al
 
         pop     edi
         pop     esi

@@ -146,6 +146,11 @@ proc _ReadFile
         cld                                     ; Make sure we count upward :)
         rep     movsd                           ; Copy 4 bytes at a time!
 
+	; Finish last 1-3 bytes
+	mov	ecx, ebx
+	and	ecx, 3h
+	rep	movsb
+
         pop     esi                             ; Restore registers
         pop     edi
         pop     ds

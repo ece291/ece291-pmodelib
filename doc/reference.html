@@ -1,0 +1,1045 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 PM Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>Library Function Reference</i></h2></center>
+<p>All functions declared in C-style use the C calling convention (parameters on stack; return value
+in EAX/AX/AL; EAX, EBX, ECX, and EDX may be clobbered) and also have the function name
+prepended with a underscore ( _ ).  Parameters and return values specified in C format obey the following
+size conventions: short, 16 bit integer (default signed); int, 32-bit integer (default signed);
+pointer (of any type), 32-bit.  Bools are 32-bit values: 1=true, 0=false.
+Pointer parameters take the address of the variable, not the contents.<br>
+<br>The source code to all of these functions is in the src subdirectory of the <a href="http://www.ece.uiuc.edu/ece291/class-resources/pmodelib.zip">pmodelib.zip</a> file (or the V:\pmodelib directory).
+
+<h3>Function Index</h3>
+<ul>
+ <li>Initialization and Shutdown</li>
+ <ul>
+  <li><a href='#LibInit'>_LibInit</a></li>
+  <li><a href='#LibExit'>_LibExit</a></li>
+ </ul>
+ <li>Simulate Real-Mode Interrupt</li>
+ <ul>
+  <li><a href='#DPMI_Int'>DPMI_Int</a></li>
+ </ul>
+ <li>Memory Handling</li>
+ <ul>
+  <li><a href='#AllocMem'>_AllocMem</a></li>
+  <li><a href='#FreeMem'>_FreeMem</a></li>
+  <li><a href='#LockArea'>_LockArea</a></li>
+  <li><a href='#GetPhysicalMapping'>_GetPhysicalMapping</a></li>
+  <li><a href='#FreePhysicalMapping'>_FreePhysicalMapping</a></li>
+ </ul>
+ <li>General File Handling</li>
+ <ul>
+  <li><a href='#OpenFile'>_OpenFile</a></li>
+  <li><a href='#CloseFile'>_CloseFile</a></li>
+  <li><a href='#ReadFile'>_ReadFile</a></li>
+  <li><a href='#WriteFile'>_WriteFile</a></li>
+ </ul>
+ <li>Graphics File Handling</li>
+ <ul>
+  <li><a href='#LoadBMP'>_LoadBMP</a></li>
+  <li><a href='#SaveBMP'>_SaveBMP</a></li>
+ </ul>
+ <li>Interrupt, IRQ, and Callback Wrappers</li>
+ <ul>
+  <li><a href='#Install_Int'>_Install_Int</a></li>
+  <li><a href='#Remove_Int'>_Remove_Int</a></li>
+  <li><a href='#Init_IRQ'>_Init_IRQ</a></li>
+  <li><a href='#Exit_IRQ'>_Exit_IRQ</a></li>
+  <li><a href='#Restore_IRQ'>_Restore_IRQ</a></li>
+  <li><a href='#Enable_IRQ'>_Enable_IRQ</a></li>
+  <li><a href='#Disable_IRQ'>_Disable_IRQ</a></li>
+  <li><a href='#Get_RMCB'>_Get_RMCB</a></li>
+  <li><a href='#Free_RMCB'>_Free_RMCB</a></li>
+ </ul>
+ <li>Text Mode Functions</li>
+ <ul>
+  <li><a href='#SetModeC80'>_SetModeC80</a></li>
+  <li><a href='#TextSetPage'>_TextSetPage</a></li>
+  <li><a href='#TextClearScreen'>_TextClearScreen</a></li>
+  <li><a href='#TextWriteChar'>_TextWriteChar</a></li>
+  <li><a href='#TextWriteString'>_TextWriteString</a></li>
+ </ul>
+ <li>EX291 Graphics Functions</li>
+ <ul>
+  <li><a href='#SetGraphics'>_SetGraphics</a></li>
+  <li><a href='#UnsetGraphics'>_UnsetGraphics</a></li>
+  <li><a href='#WritePixel'>_WritePixel</a></li>
+  <li><a href='#ReadPixel'>_ReadPixel</a></li>
+  <li><a href='#RefreshVideoBuffer'>_RefreshVideoBuffer</a></li>
+ </ul>
+ <li>VESA LFB Graphics Functions</li>
+ <ul>
+  <li><a href='#CheckVESA'>_CheckVESA</a></li>
+  <li><a href='#SetVESA'>_SetVESA</a></li>
+  <li><a href='#UnsetVESA'>_UnsetVESA</a></li>
+  <li><a href='#WritePixelVESA'>_WritePixelVESA</a></li>
+  <li><a href='#ReadPixelVESA'>_ReadPixelVESA</a></li>
+  <li><a href='#RefreshVideoBufferVESA'>_RefreshVideoBufferVESA</a></li>
+ </ul>
+ <li>NetBIOS Networking</li>
+ <ul>
+  <li><a href='#NetInit'>_NetInit</a></li>
+  <li><a href='#NetRelease'>_NetRelease</a></li>
+  <li><a href='#SendPacket'>_SendPacket</a></li>
+ </ul>
+ <li>Miscelleanous Utility Functions</li>
+ <ul>
+  <li><a href='#BinAsc'>BinAsc</a></li>
+  <li><a href='#AscBin'>AscBin</a></li>
+ </ul>
+</ul>
+
+<h3>Global Variables</h3>
+<TABLE border=0><TR>
+<TH align=left>Name</TH>
+<TH width=25>&nbsp;</TH>
+<TH align=left>Description</TH>
+<TH width=25>&nbsp;</TH>
+</TR><TR>
+<TD>DPMI_*</TD>
+<TD width=25>&nbsp;</TD>
+<TD>DPMI Registers Structure</TD>
+<TD width=25>&nbsp;</TD>
+</TR><TR>
+<TD>_Transfer_Buf</TD>
+<TD width=25>&nbsp;</TD>
+<TD>Real Mode Transfer Buffer PM Selector</TD>
+<TD width=25>&nbsp;</TD>
+</TR><TR>
+<TD>_Transfer_Buf_Seg</TD>
+<TD width=25>&nbsp;</TD>
+<TD>Real Mode Transfer Buffer RM Segment</TD>
+<TD width=25>&nbsp;</TD>
+</TR><TR>
+<TD>_Transfer_Buf_Size</TD>
+<TD width=25>&nbsp;</TD>
+<TD>Size of Real Mode Transfer Buffer</TD>
+<TD width=25>&nbsp;</TD>
+</TR><TR>
+<TD>_VideoBlock</TD>
+<TD width=25>&nbsp;</TD>
+<TD>PM Selector of video backbuffer (initialized by <a href="#SetGraphics">SetGraphics()</a>)</TD>
+<TD width=25>&nbsp;</TD>
+</TR><TR>
+<TD>_ScratchBlock</TD>
+<TD width=25>&nbsp;</TD>
+<TD>PM Selector of 1 MB scratch buffer (used by lib routines but free for temporary program use)</TD>
+<TD width=25>&nbsp;</TD>
+</TR><TR>
+<TD>_NetTransferSel</TD>
+<TD width=25>&nbsp;</TD>
+<TD>PM Selector of network transfer area (contains RXBuffer and TXBuffer)</TD>
+<TD width=25>&nbsp;</TD>
+</TR><TR>
+<TD>_textsel</TD>
+<TD width=25>&nbsp;</TD>
+<TD>PM Selector of text-mode video memory</TD>
+<TD width=25>&nbsp;</TD>
+</TR></TABLE>
+
+<h2>Functions</h2>
+
+<h3><a name='LibInit'>bool LibInit(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Initializes static library components.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, otherwise 0</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Call this before calling any library routines!</li>
+ </ul>
+</ul>
+
+<h3><a name='LibExit'>void LibExit(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Deinitializes library</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Blindly assumes you called <a href="#LibInit">LibInit()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='DPMI_Int'>DPMI_Int</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Simulate a real-mode interrupt with the ability to set
+  ALL registers, including segments, without faulting</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>DPMI_Regs filled with RM interrupt inputs</li>
+  <li>BX = interrupt number to simulate</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>DPMI_Regs filled with RM interrupt outputs</li>
+  <li>CF=1 if error, AX=error code (see <a href="http://www.ece.uiuc.edu/ece291/class-resources/pmode/dpmi/index.html">DPMI reference</a> for codes)</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Doesn't use C calling convention</li>
+  <li>Clobbers CX, DX</li>
+ </ul>
+</ul>
+
+<h3><a name='AllocMem'>unsigned short AllocMem(unsigned int Size)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Allocates a memory block of Size bytes.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Size, the size of the memory block to allocate.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns selector for the memory block, or -1 on error.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Can only allocate a maximum of MAXMEMHANDLES (16) blocks.</li>
+ </ul>
+</ul>
+
+<h3><a name='FreeMem'>void FreeMem(unsigned short Selector)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Frees a memory block allocated by <a href="#AllocMem">AllocMem()</a>.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Selector, the selector of the memory block to free.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>No error checking.</li>
+ </ul>
+</ul>
+
+<h3><a name='LockArea'>bool LockArea(short Selector, unsigned int Offset, unsigned int Length)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Locks an area of memory so it's safe for an interrupt handler to access.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Selector, selector of the area to lock</li>
+  <li>Offset, offset in selector of the start of the area</li>
+  <li>Length, length of the area</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise</li>
+ </ul>
+</ul>
+
+<h3><a name='GetPhysicalMapping'>bool GetPhysicalMapping(unsigned int *LinearAddress, short *Selector, unsigned long PhysicalAddress, int Size)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Maps a physical memory region into linear memory space.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>PhysicalAddress, the starting physical address to map.</li>
+  <li>Size, the size of the region to map.</li>
+  <li>Length, length of the area</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>LinearAddress, the linear address of the mapped region.</li>
+  <li>Selector, a selector that can be used to access the region.</li>
+  <li>Returns 1 on error, 0 otherwise</li>
+ </ul>
+</ul>
+
+<h3><a name='FreePhysicalMapping'>void FreePhysicalMapping(unsigned int *LinearAddress, short *Selector)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Frees the resources allocated by GetPhysicalMapping().</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>LinearAddress, the linear address of the mapping to free.</li>
+  <li>Selector, the selector used to point to the mapped memory block.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>LinearAddress and Selector are cleared to 0.</li>
+ </ul>
+</ul>
+
+<h3><a name='OpenFile'>int OpenFile(char *Filename, short WriteTo)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Opens a file for reading or writing.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Filename, (path)name of the file to read</li>
+  <li>WriteTo, 1 if create &amp; open for writing, 0 for open to read</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns DOS handle to file, -1 on error.</li>
+ </ul>
+</ul>
+
+<h3><a name='CloseFile'>void CloseFile(int Handle)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Closes an open file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to close.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='ReadFile'>int ReadFile(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads from a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to read from</li>
+  <li>BufSel, selector in which Buffer resides</li>
+  <li>Buffer, pointer (into BufSel) of buffer to read into</li>
+  <li>Count, (maximum) number of bytes to read into buffer</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually read</li>
+ </ul>
+</ul>
+
+<h3><a name='WriteFile'>int WriteFile(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes to a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to write to</li>
+  <li>BufSel, selector in which Buffer resides</li>
+  <li>Buffer, pointer (into BufSel) of buffer to read from</li>
+  <li>Count, number of bytes to write out to the file</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually written</li>
+ </ul>
+</ul>
+
+<h3><a name='LoadBMP'>bool LoadBMP(char *Name, short WhereSel, void *Where)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads a 8-bit or 24-bit BMP file into a 32-bit buffer.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Name, (path)name of the BMP file</li>
+  <li>WhereSel, selector in which Where resides</li>
+  <li>Where, pointer (in WhereSel) of data area</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns nonzero on error, otherwise 0</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes destination is big enough to hold loaded 32-bit image.</li>
+  <li>Doesn't return size of loaded image (width x height).</li>
+ </ul>
+</ul>
+
+<h3><a name='SaveBMP'>bool SaveBMP(char *Name, short Wheresel, void *Where, int Width, int Height)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Saves a 32-bit image into a 24-bit BMP file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Name, (path)name of the BMP file</li>
+  <li>WhereSel, selector in which Where resides</li>
+  <li>Where, pointer (in WhereSel) of data area</li>
+  <li>Width, width of image</li>
+  <li>Height, height of image</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns nonzero on error, otherwise 0</li>
+ </ul>
+</ul>
+
+<h3><a name='Install_Int'>int Install_Int(int num, unsigned int Handler_Address)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Installs a interrupt handler for the specified interrupt, allocating
+  a wrapper function which will save registers and handle the stack
+  switching. The passed function should return zero in eax to exit the
+  interrupt with an iret instruction, and non-zero to chain to the old handler.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>num, the interrupt number to install the handler for</li>
+  <li>Handler_Address, the address of the handler function</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns -1 on error (unable to allocate a wrapper), 0 otherwise</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>A maximum of MAX_INTS (8) interrupts may be hooked using this function.</li>
+ </ul>
+</ul>
+
+<h3><a name='Remove_Int'>void Remove_Int(int num)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Removes an interrupt handler, restoring the old vector.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>num, the interrupt number to uninstall the handler for.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='Init_IRQ'>void Init_IRQ(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Saves the default IRQ masks.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='Exit_IRQ'>void Exit_IRQ(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Restores the default IRQ masks.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='Restore_IRQ'>void Restore_IRQ(int num)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Restores default masking for an IRQ.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>num, the IRQ to restore to its original masking.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='Enable_IRQ'>void Enable_IRQ(int num)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Unmasks an IRQ.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>num, the IRQ to unmask.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='Disable_IRQ'>void Disable_IRQ(int num)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Masks an IRQ.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>num, the IRQ to mask</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='Get_RMCB'>bool Get_RMCB(unsigned short *RM_Segment, unsigned short *RM_Offset, unsigned int Handler_Address, bool ReturnTypeRETF)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets a real-mode callback handler for the specified PM handler, allocating
+  a wrapper function which will save registers and handle the stack
+  switching.  The real-mode segment and offset to pass to the real-mode
+  function (eg, mouse interrupt) are returned into the variables pointed
+  to by RM_Segment and RM_Offset.  The return type of the handler is
+  signaled by ReturnTypeRETF (1=retf, 0=iret).</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handler_Address, the address of the handler function</li>
+  <li>ReturnTypeRETF, return type of the wrapper (1=retf, 0=iret)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>RM_Segment, the real-mode segment address of the callback function</li>
+  <li>RM_Offset, the real-mode offset address of the callback function</li>
+  <li>Returns 1 on error (unable to allocate a wrapper), 0 otherwise</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>A maximum of MAX_RMCB (4) wrappers may be allocated using this function.</li>
+ </ul>
+</ul>
+
+<h3><a name='Free_RMCB'>void Free_RMCB(short RM_Segment, short RM_Offset)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Frees a real-mode callback wrapper</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>RM_Segment, the real-mode segment address of the callback function</li>
+  <li>RM_Offset, the real-mode offset address of the callback function</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='SetModeC80'>void SetModeC80(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets 80x25 16-color text mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='TextSetPage'>void TextSetPage(short PageNum)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets current visible textmode page.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>PageNum, the page number to switch to (0-7)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='TextClearScreen'>void TextClearScreen(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Clears the textmode screen (first page only)</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes es=[_textsel]</li>
+ </ul>
+</ul>
+
+<h3><a name='TextWriteChar'>void TextWriteChar(short X, short Y, short Char, short Attrib)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes a single character (with attribute) to the textmode screen.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, column at which to write the character (0-79)</li>
+  <li>Y, row at which to write the character (0-24)</li>
+  <li>Char, character to write to the screen (0-255)</li>
+  <li>Attrib, attribute with which to draw the character</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes es=[_textsel]</li>
+ </ul>
+</ul>
+
+<h3><a name='TextWriteString'>void TextWriteString(short X, short Y, char *String, short Attrib)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes a string (with attribute) to the textmode screen.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, column at which to write the first character (0-79)</li>
+  <li>Y, row at which to write the first character (0-24)</li>
+  <li>String, string to write to the screen</li>
+  <li>Attrib, attribute with which to draw the string</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes es=[_textsel]</li>
+ </ul>
+</ul>
+
+<h3><a name='SetGraphics'>bool SetGraphics(short Width, short Height)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Tries to set the desired graphics mode in 32-bit color depth.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Width, the width of the desired graphics screen (in pixels)</li>
+  <li>Height, the height of the desired graphics screen (in pixels)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>1 on error, 0 otherwise</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Tries the EX291 graphics driver first; if it's not available, tries VESA
+   by calling <a href="#CheckVESA">CheckVESA()</a> and
+   <a href="#SetVESA">SetVESA()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='UnsetGraphics'>void UnsetGraphics(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets out of graphics mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Calls <a href="#UnsetVESA">UnsetVESA()</a> if VESA was autoselected as
+   the graphics driver in <a href="#SetGraphics">SetGraphics()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='WritePixel'>void WritePixel(short X, short Y, unsigned int Color)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Draws a pixel on the backbuffer.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, the x coordinate of the point to draw</li>
+  <li>Y, the y coordinate of the point to draw</li>
+  <li>Color, the 32-bit color value to draw</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Calls <a href="#WritePixelVESA">WritePixelVESA()</a> if VESA was
+   autoselected as the graphics driver in
+   <a href="#SetGraphics">SetGraphics()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='ReadPixel'>unsigned int ReadPixel(short X, short Y)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads the color value of a pixel on the backbuffer.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, the x coordinate of the point to read</li>
+  <li>Y, the y coordinate of the point to read</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the 32-bit color value of the pixel</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Calls <a href="#ReadPixelVESA">ReadPixelVESA()</a> if VESA was
+   autoselected as the graphics driver in
+   <a href="#SetGraphics">SetGraphics()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='RefreshVideoBuffer'>void RefreshVideoBuffer(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Copies the backbuffer to the display memory.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>_VideoBlock filled with new screen data</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Calls <a href="#RefreshVideoBufferVESA">RefreshVideoBufferVESA()</a> if
+   VESA was autoselected as the graphics driver in
+   <a href="#SetGraphics">SetGraphics()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='CheckVESA'>bool CheckVESA(unsigned int mode)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Checks to see if VESA is available and if the desired VESA mode is
+   available.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, otherwise 0</li>
+ </ul>
+</ul>
+
+<h3><a name='SetVESA'>bool SetVESA(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets the VESA graphics mode selected by
+   <a href="#CheckVESA">CheckVESA()</a>.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>1 on error, 0 otherwise</li>
+  <li>ES = VESA selector</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes <a href="#CheckVESA">CheckVESA()</a> has been called to determine
+   if VESA is available and to fill the various internal library structures
+   necessary for this function to work.</li>
+ </ul>
+</ul>
+
+<h3><a name='UnsetVESA'>void UnsetVESA(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets out of VESA mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>If ES is still set to the VESA selector set by
+   <a href="#SetVESA">SetVESA()</a>, it will become invalid.</li>
+ </ul>
+</ul>
+
+<h3><a name='WritePixelVESA'>void WritePixelVESA(short X, short Y, unsigned int Color)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Draws a pixel on the screen.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, the x coordinate of the point to draw</li>
+  <li>Y, the y coordinate of the point to draw</li>
+  <li>Color, the 32-bit color value to draw</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes ES is VESA selector set by <a href="#SetVESA">SetVESA()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='ReadPixelVESA'>unsigned int ReadPixelVESA(short X, short Y)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads the color value of a pixel on the screen.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>X, the x coordinate of the point to read</li>
+  <li>Y, the y coordinate of the point to read</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the 32-bit color value of the pixel</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes ES is VESA selector set by <a href="#SetVESA">SetVESA()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='RefreshVideoBufferVESA'>void RefreshVideoBufferVESA(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Copies the backbuffer to the display memory.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>_VideoBlock filled with new screen data</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes ES is VESA selector set by <a href="#SetVESA">SetVESA()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='NetInit'>char NetInit(unsigned int PostAddress, char *GroupName, char *MyName)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Initializes NetBIOS and sets up the receive callback procedure</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>PostAddress, address of receive packet callback procedure</li>
+  <li>GroupName, 16-byte string containing group name to use</li>
+  <li>MyName, 16-byte string containing machine name to use (may be modified)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns -1 on error, otherwise:</li>
+  <li>Returns player number assigned</li>
+  <li>MyName is changed to reflect actual machine name.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Callback procedure is declared as:</li>
+  <li>void Callback(unsigned int RXBuffer, unsigned int Length)</li>
+ </ul>
+</ul>
+
+<h3><a name='NetRelease'>void NetRelease(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Releases NetBIOS names and resources.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes NetInit() has been called!</li>
+ </ul>
+</ul>
+
+<h3><a name='SendPacket'>void SendPacket(int Length)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sends a packet out using NetBIOS.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Length, Data Length of data to transmit</li>
+  <li>TXBuffer filled with data to transmit</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes NetInit() has been called!</li>
+ </ul>
+</ul>
+
+
+<h3><a name='BinAsc'>BinAsc</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts from binary to ASCII string</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>AX, 16-bit signed integer to be converted.</li>
+  <li>EBX, starting offset for a 7-byte buffer to hold the result.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>EBX, offset of first nonblank character of the string, may be a minus sign</li>
+  <li>CL, Number of nonblank characters generated</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Doesn't use C calling convention</li>
+ </ul>
+</ul>
+
+
+<h3><a name='AscBin'>AscBin</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts from ASCII string to binary</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>EBX, starting offset of first char of ASCII string</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>AX, signed 16-bit number having value of ASCII string</li>
+  <li>EBX, offset of first non-convertible character</li>
+  <li>DL, Status of this call:</li>
+  <ul>
+   <li>0 if no conversion errors</li>
+   <li>1 if string had no valid digits</li>
+   <li>2 if string had too many digits</li>
+   <li>3 if overflow</li>
+   <li>4 if underflow (too negative)</li>
+  </ul>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Doesn't use C calling convention</li>
+ </ul>
+</ul>
+
+</body>
+</html>

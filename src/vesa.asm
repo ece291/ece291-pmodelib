@@ -1,5 +1,5 @@
-; VESA (320x240x32-bit) routines
-;  By Peter Johnson, 1999
+; VESA (640x480x32-bit) routines
+;  By Peter Johnson, 1999-2000
 
 %include "myC32.mac"		; C interface macros
 
@@ -83,6 +83,7 @@ ModeSelected	resd	1	; Selected graphics mode, set by CheckVESA, used by SetVESA
 
 	SECTION .data
 
+	GLOBAL VESA_BytesPerScanLine
 VESA_BytesPerScanLine		dd	4*WINDOW_W
 
 	SECTION .text
@@ -92,7 +93,7 @@ VESA_BytesPerScanLine		dd	4*WINDOW_W
 ; bool CheckVESA(unsigned int mode);
 ; Purpose: Checks to see if VESA is available and if the desired mode is
 ;	   available.
-; Inputs:  dword mode -- the VESA mode to set it to.
+; Inputs:  None
 ; Outputs: VESAInfo and ModeInfo structures filled (if successful)
 ;	   VESA_BytesPerScanLine set to proper value (if VESA 3 installed)
 ;	   Returns 1 on error, otherwise 0
@@ -312,97 +313,14 @@ proc _ReadPixelVESA
 endproc
 
 ;----------------------------------------
-; void CopySystemToScreenVESA(short SourceStartX, short SourceStartY,
-;  short SourceEndX, short SourceEndY, short DestStartX,
-;  short DestStartY, short SourceBitmapWidth, char *SourcePtr);
-; Purpose: Copies an area of a source bitmap to the screen.
-; Inputs:  SourceStartX, X coordinate of upper left corner of source
-;          SourceStartY, Y coordinate of upper left corner of source
-;          SourceEndX, X coordinate of lower right corner of source (exclusive)
-;          SourceEndY, Y coordinate of lower right corner of source (exclusive)
-;          DestStartX, X coordinate of upper left corner of dest
-;          DestStartY, Y coordinate of upper left corner of dest
-;          SourceBitmapWidth, # of pixels across source bitmap
-;          SourcePtr, pointer in GS to start of source bitmap
-; Outputs: None
-; Notes:   Assumes es=[VESA_Selector], SourcePtr in gs.
-;----------------------------------------
-proc _CopySystemToScreenVESA
-
-%$SourceStartX          arg     2
-%$SourceStartY          arg     2
-%$SourceEndX            arg     2
-%$SourceEndY            arg     2
-%$DestStartX            arg     2
-%$DestStartY            arg     2
-%$SourceBitmapWidth     arg     2
-%$SourcePtr             arg     4
-
-        push    esi                             ; preserve caller's register variables
-	push	edi
-	push	ds
-
-	mov	ax, gs				; Copy the segment to a local one
-	mov	ds, ax
-
-	cld
-	
-	mov	ax, [ebp + %$SourceBitmapWidth]
-	mul	word [ebp + %$SourceStartY]	; top source rect scan line
-	add	ax, [ebp + %$SourceStartX]
-	xor	esi, esi
-	mov	si, ax
-	add	esi, [ebp + %$SourcePtr]	; offset of first source rect pixel
-
-	xor	eax, eax
-	mov	ax, [ebp+%$DestStartY]
-	lea	eax, [eax+eax*4]	; Y*320=Y*5*2^6
-	shl	eax, 6
-	xor	edi, edi
-	mov	di, [ebp+%$DestStartX]
-	add	edi, eax		; Offset=Y*320+X
-	
-	xor	ecx, ecx
-	mov	cx, [ebp + %$SourceEndX]	; calculate # of pixels across
-	sub	cx, [ebp + %$SourceStartX]	;  rect
-	mov	edx, ecx
-
-	jle	.CopyDone			; skip if 0 or negative width
-	
-	xor	ebx, ebx
-	mov	bx, [ebp + %$SourceEndY]
-	sub	bx, [ebp + %$SourceStartY]	; calc height of rectangle
-
-	jle	.CopyDone			; skip if 0 or negative height
-
-.CopyRowsLoop:
-	mov	eax, esi
-
-	rep
-
-	mov	esi, eax			; retrieve the dest start offset
-	xor	eax, eax
-	mov	ax, [ebp + %$SourceBitmapWidth] ; point to the start of the
-	add	esi, eax			;  next scan line of the source
-	
-	dec	ebx				; count down rows
-	jnz	.CopyRowsLoop
-.CopyDone:
-	pop	ds
-	pop	edi				; restore caller's register variables
-	pop	esi
-
-endproc
-
-;----------------------------------------
-; void RefreshVideoBuffer(void);
+; void RefreshVideoBufferVESA(void);
 ; Purpose: Copies the backbuffer to the display memory.
 ; Inputs:  _VideoBlock filled with new screen data.
 ; Outputs: None
 ; Notes:   Assumes es=[VESA_Selector]
-;----------------------------------------
-	GLOBAL	_RefreshVideoBuffer
-_RefreshVideoBuffer
+;;----------------------------------------
+	GLOBAL	_RefreshVideoBufferVESA
+_RefreshVideoBufferVESA
 	
 	push	esi
 	push	edi

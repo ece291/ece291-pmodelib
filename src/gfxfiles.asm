@@ -183,7 +183,7 @@ proc _LoadBMP
 	pop	ebx
 	pop	edi
 	pop	esi
-	mov	esp, ebp			; discard storage for local variables
+	mov	esp, ebp		; discard storage for local variables
 
 endproc
 
@@ -294,11 +294,11 @@ proc _SaveBMP
 
 .NextCol:
 	mov	eax, [ebx+esi*4]		; Read from 32-bit buffer
-	mov	[es:edi + 2], al		; Put blue value into line buffer
+	mov	[es:edi], al			; Put blue value into line buffer
 	shr     eax, 8
 	mov	[es:edi + 1], al		; Put green value into line buffer
 	shr	eax, 8
-	mov	[es:edi], al			; Put red value into line buffer
+	mov	[es:edi + 2], al		; Put red value into line buffer
 	
         add     edi, 3                          ; Increment dest pointer
 	inc     esi                             ; Increment source pixel

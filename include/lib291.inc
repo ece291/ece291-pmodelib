@@ -5,9 +5,11 @@
 
 %include "constant.inc"
 %include "globals.inc"
+%include "dma.inc"
 %include "dpmi_int.inc"
 %include "dpmi_mem.inc"
 %include "filefunc.inc"
+%include "graphics.inc"
 %include "gfxfiles.inc"
 %include "int_wrap.inc"
 %include "lib_load.inc"

@@ -9,8 +9,8 @@ VPATH = examples src
 
 PROGRAMS = mousetst testint testnet
 
-OBJS = lib_load.o vesa.o textmode.o gfxfiles.o filefunc.o dpmi_int.o \
-       dpmi_mem.o int_wrap.o rmcbwrap.o netbios.o misc.o
+OBJS = lib_load.o graphics.o vesa.o textmode.o gfxfiles.o filefunc.o \
+       dpmi_int.o dpmi_mem.o int_wrap.o rmcbwrap.o netbios.o misc.o dma.o
 
 LIB_OBJS = $(addprefix $(OBJ)/, $(OBJS))
 

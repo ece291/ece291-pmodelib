@@ -57,7 +57,7 @@ _TextClearScreen
 	push	edi
 
         xor     edi, edi
-        xor     eax, eax
+        mov     eax, 07000700h
 	mov	ecx, 1000
 	rep	stosd		; clear all of display memory to black
 

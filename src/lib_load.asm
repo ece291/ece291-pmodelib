@@ -16,7 +16,6 @@
 	GLOBAL _djgpp_es
 	GLOBAL _djgpp_fs
 	GLOBAL _djgpp_gs
-	GLOBAL _VideoBlock	
 	GLOBAL _ScratchBlock
 	GLOBAL _textsel
 
@@ -27,8 +26,6 @@ _djgpp_es	resw	1
 _djgpp_fs	resw	1
 _djgpp_gs	resw	1
 
-_VideoBlock_Handle	resw	1	; 32-bit Video Block Handle - ~768 KB
-_VideoBlock		resw	1	; 32-bit Video Block Selector
 _ScratchBlock_Handle	resw	1	; "Scratch" Block Handle - 1 MB
 _ScratchBlock		resw	1	; "Scratch" Block Selector
 
@@ -59,13 +56,6 @@ _LibInit
 	jc	near .error			; exit if error
 	mov	[_textsel], ax			; save selector
 	
-	; Alloc 32-bit Video Block
-	invoke	_AllocMem, dword WINDOW_W*WINDOW_H*4
-	cmp	ax, -1
-	je	near .error
-	mov	word [_VideoBlock], ax
-	mov	gs, ax
-	
 	; Alloc "Scratch" Block
 	invoke	_AllocMem, dword 1024*1024
 	cmp	ax, -1
@@ -95,13 +85,11 @@ _LibExit
 	; Free RM interrupt transfer buffer
 	invoke	_FreeTransferBuf	
 
-	; Free 32-bit Video Block
-	invoke	_FreeMem, word [_VideoBlock]
 	; Free "Scratch" Block
 	invoke	_FreeMem, word [_ScratchBlock]
 	
 	; Restore DJGPP startup selectors
-	mov	ds, [_djgpp_ds]
+	mov	ds, [cs:_djgpp_ds]
 	mov	es, [_djgpp_es]
 	mov	fs, [_djgpp_fs]
 	mov	gs, [_djgpp_gs]
