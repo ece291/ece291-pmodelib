@@ -1,7 +1,7 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.14 2001/04/12 02:03:18 pete Exp $
+# $Id: Makefile,v 1.15 2001/04/17 23:51:47 pete Exp $
 
 # set some useful paths
 OBJ = obj
@@ -25,13 +25,12 @@ LIB_OBJS = $(addprefix $(OBJ)/, $(OBJS))
 
 .PRECIOUS: $(OBJ)/%.o
 
-.PHONY: all msg lib clean veryclean
+.PHONY: all msg libobjs lib clean veryclean
 
-all: msg $(LIB) $(PROGRAMS)
+all: $(LIB) $(PROGRAMS)
 	@echo All done.
 
-msg:
-	@echo Compiling. Please wait...
+libobjs: $(LIB_OBJS)
 
 lib: $(LIB)
 
