@@ -3,7 +3,7 @@
 ;
 ; String handling simplifications in _OpenFile (repnz) by Jason Galliccho.
 ;
-; $Id: filefunc.asm,v 1.9 2001/02/25 20:39:42 pete Exp $
+; $Id: filefunc.asm,v 1.10 2001/03/10 19:49:13 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -266,9 +266,9 @@ proc _WriteFile
 endproc
 
 ;----------------------------------------
-; unsigned int SeekFile(int Handle, unsigned int Count, short From);
-; Purpose: Reads from a file.
-; Inputs:  Handle, DOS handle of the file to read from
+; int SeekFile(int Handle, int Count, short From);
+; Purpose: Moves current file position.
+; Inputs:  Handle, DOS handle of the file to seek within
 ;	   Count, number of bytes to seek from position
 ;	   From, position to seek from: 0=start, 1=current, 2=end
 ; Outputs: New file position (in bytes, from start of file), -1 on error
