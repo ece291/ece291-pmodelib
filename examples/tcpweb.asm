@@ -1,7 +1,7 @@
 ; Test program to get a webpage from a TCP server
 ;  By Peter Johnson, 2001
 ;
-; $Id: tcpweb.asm,v 1.2 2001/04/07 08:02:51 pete Exp $
+; $Id: tcpweb.asm,v 1.3 2001/04/11 21:09:24 pete Exp $
 %include "lib291.inc"
 
         BITS 32
@@ -11,7 +11,7 @@
 
 SECTION .data
 
-_website	db	"128.174.112.194",0
+_website	db	"courses.ece.uiuc.edu",0
 _getstring	db	"GET /ece291/",13,10,0
 getstring_len	equ	$-_getstring
 
@@ -43,9 +43,14 @@ _main:
 	invoke	_Socket_htons, word 80		; HTTP port
 	mov	[_address+SOCKADDR.Port], ax
 	;  Then the address
-	invoke	_Socket_inet_addr, dword _website
+	invoke	_Socket_gethostbyname, dword _website
 	test	eax, eax
 	jz	near .close
+	mov	eax, [eax+HOSTENT.AddrList]	; Get pointer to address list
+	mov	eax, [eax]			; Get pointer to first address
+	test	eax, eax			; Valid pointer?
+	jz	near .close
+	mov	eax, [eax]			; Get first address
 	mov	[_address+SOCKADDR.Address], eax
 
 	; Connect to the remote host
