@@ -1,6 +1,7 @@
 ; Text Mode (80x25x16) header file
 ;  By Peter Johnson, 1999
 
+        EXTERN _SetModeC80
         EXTERN _TextSetPage
 	EXTERN _TextClearScreen
 	EXTERN _TextWriteChar

@@ -2,20 +2,14 @@
 ;  By Peter Johnson, 1999
 
 	EXTERN _CheckVESA
-        EXTERN _SetVESA
+	EXTERN _SetVESA
 	EXTERN _UnsetVESA
 	EXTERN _WritePixelVESA
 	EXTERN _ReadPixelVESA
-	EXTERN _FillRectangleVESA
-	EXTERN _CopyScreenToScreenVESA
 	EXTERN _CopySystemToScreenVESA
-	EXTERN _ShowPageVESA
+	EXTERN _RefreshVideoBuffer
 
-_WritePixelVESA_arglen		equ	10
-_ReadPixelVESA_arglen		equ	6
-_FillRectangleVESA_arglen	equ	12
-_CopyScreenToScreenVESA_arglen	equ	20
-_CopySystemToScreenVESA_arglen	equ	20
-_ShowPageVESA_arglen		equ	2
-
-        EXTERN VESA_BytesPerScanLine
+_CheckVESA_arglen		equ	4
+_WritePixelVESA_arglen		equ	8
+_ReadPixelVESA_arglen		equ	4
+_CopySystemToScreenVESA_arglen	equ	18

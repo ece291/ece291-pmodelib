@@ -3,243 +3,252 @@
 
 %include "myC32.mac"
 
-%assign MAXMEMHANDLES	16			; Maximum number of handles available
+%assign MAXMEMHANDLES   16                      ; Maximum number of handles available
 
-	BITS	32
+        BITS    32
 
-	SECTION .data
+        SECTION .data
 
-LinearList	times MAXMEMHANDLES dd 0	; Linear addresses
-SizeList	times MAXMEMHANDLES dd 0	; Allocated sizes (for lock function)
-HandleList	times MAXMEMHANDLES dd 0	; DPMI Memory block handles
-SelectorList	times MAXMEMHANDLES dw 0	; Selectors to locked memory blocks
+LinearList      times MAXMEMHANDLES dd 0        ; Linear addresses
+SizeList        times MAXMEMHANDLES dd 0        ; Allocated sizes (for lock function)
+HandleList      times MAXMEMHANDLES dd 0        ; DPMI Memory block handles
+SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to locked memory blocks
 
-NumHandles	db	0
+NumHandles      db      0
 
-	SECTION	.text
+        SECTION .text
 
 ;----------------------------------------
 ; unsigned short AllocMem(unsigned int Size);
+; Purpose: Allocates a memory block of Size bytes.
+; Inputs:  Size, the size of the memory block to allocate.
+; Outputs: A library handle to the memory block.
+; Notes:   Can only allocate a maximum of MAXMEMHANDLES blocks.
 ;----------------------------------------
 proc _AllocMem
 
-%$Size		arg	4		; Size (in bytes) of memory block to allocate
+%$Size          arg     4               ; Size (in bytes) of memory block to allocate
 
-	push	esi
-	push	edi
-	push	es
+        push    esi
+        push    edi
+        push    es
 
-	mov	ecx, MAXMEMHANDLES
-	cmp	byte [NumHandles], MAXMEMHANDLES	; Check to see if we have a handle free
-	jz	.error
+        mov     ecx, MAXMEMHANDLES
+        cmp     byte [NumHandles], MAXMEMHANDLES        ; Check to see if we have a handle free
+        jz      .error
 
-.find:					; Search for an empty handle
-	cmp	dword [SizeList+ecx*4], 0
-	loopnz	.find
+.find:                                          ; Search for an empty handle
+        cmp     dword [SizeList+ecx*4], 0
+        loopnz  .find
 
-	push	ecx				; Put the index on the stack
+        push    ecx                             ; Put the index on the stack
 
-	mov	ax, 0501h			; [DPMI 0.9] Allocate Linear Memory Block
-	mov	ebx, [ebp + %$Size]		; Size of block (32 bit)
-	mov	cx, bx
-	shr	ebx, 16				; size of block is stored in bx:cx
-	or	cx, 0FFFh			; set the lower 12 bits to 1 to page-align
+        mov     ax, 0501h                       ; [DPMI 0.9] Allocate Linear Memory Block
+        mov     ebx, [ebp + %$Size]             ; Size of block (32 bit)
+        mov     cx, bx
+        shr     ebx, 16                         ; size of block is stored in bx:cx
+        or      cx, 0FFFh                       ; set the lower 12 bits to 1 to page-align
 
-	int	31h
+        int     31h
 
-	pop	edx				; Get the index into edx
+        pop     edx                             ; Get the index into edx
 
-	jnc	.ok
+        jnc     .ok
 
 .error:
-	mov	ax, 0FFFFh			; Error out
-	jmp	.done
+        mov     ax, 0FFFFh                      ; Error out
+        jmp     .done
 
 .ok:
-	shl	ebx, 16				; make bx:cx -> ebx
-	mov	bx, cx
-	shl	esi, 16				; same for si:di -> esi
-	mov	si, di
+        shl     ebx, 16                         ; make bx:cx -> ebx
+        mov     bx, cx
+        shl     esi, 16                         ; same for si:di -> esi
+        mov     si, di
 
-	mov	ecx, dword [ebp + %$Size]	; get size
-	or	ecx, 0FFFh			; page align it
-	mov	dword [LinearList+edx*4], ebx	; Save into lists
-	mov	dword [HandleList+edx*4], esi
-	mov	dword [SizeList+edx*4], ecx
+        mov     ecx, dword [ebp + %$Size]       ; get size
+        or      ecx, 0FFFh                      ; page align it
+        mov     dword [LinearList+edx*4], ebx   ; Save into lists
+        mov     dword [HandleList+edx*4], esi
+        mov     dword [SizeList+edx*4], ecx
 
-	inc	byte [NumHandles]
-	mov	eax, edx			; Return the internal handle
+        inc     byte [NumHandles]
+        mov     eax, edx                        ; Return the internal handle
 
 .done:
-	pop	es
-	pop	edi
-	pop	esi
+        pop     es
+        pop     edi
+        pop     esi
 
 endproc
 
 ;----------------------------------------
 ; void FreeMem(unsigned short Handle);
+; Purpose: Frees a memory block allocated by AllocMem().
+; Inputs:  Handle, the library handle of the memory block to free.
+; Outputs: None
+; Notes:   No error checking.
 ;----------------------------------------
 proc _FreeMem
 
-%$Handle	arg	2		; Internal handle of memory block to free
+%$Handle        arg     2               ; Internal handle of memory block to free
 
-	push	esi
-	push	edi
-	push	es
+        push    esi
+        push    edi
+        push    es
 
-	xor	ecx, ecx
-	mov	cx, [ebp + %$Handle]		; Get Handle parameter
+        xor     ecx, ecx
+        mov     cx, [ebp + %$Handle]            ; Get Handle parameter
 
-	cmp	cx, 0ffffh			; Check for valid handle
-	jz	.done
+        cmp     cx, 0ffffh                      ; Check for valid handle
+        jz      .done
 
-	push	ecx				; Save index
+        push    ecx                             ; Save index
 
-	mov	esi, dword [HandleList+ecx*4]	; Split DPMI handle -> si:di
-	mov	di, si
-	shr	esi, 16
+        mov     esi, dword [HandleList+ecx*4]   ; Split DPMI handle -> si:di
+        mov     di, si
+        shr     esi, 16
 
-	mov	ax, 0502h			; [DPMI 0.9] Free Memory Block
-	int	31h
+        mov     ax, 0502h                       ; [DPMI 0.9] Free Memory Block
+        int     31h
 
-	pop	edx				; Retrieve index
+        pop     edx                             ; Retrieve index
 
-	mov	dword [LinearList+edx*4], 0	; Reset list values
-	mov	dword [SizeList+edx*4], 0
-	mov	dword [HandleList+edx*4], 0
+        mov     dword [LinearList+edx*4], 0     ; Reset list values
+        mov     dword [SizeList+edx*4], 0
+        mov     dword [HandleList+edx*4], 0
 
 .done:
-	pop	es
-	pop	edi
-	pop	esi
+        pop     es
+        pop     edi
+        pop     esi
 
 endproc
 
 ;----------------------------------------
 ; char *LockMem(unsigned short Handle);
-; Note: Not actually C-callable as such.
-;  Sets ax=selector.  This function locks
-;  the memory, allocates a descriptor to
-;  access it, and sets up the descriptor
-;  with the address and length of the
-;  allocated RAM.
+; Purpose: Get a selector to an allocated memory block.
+; Inputs:  Handle, the library handle of the memory block to lock.
+; Outputs: AX=selector
+; Notes:   Not actually C-callable as such, as it doesn't return a valid
+;          C pointer, but conforms to C calling convention.
 ;----------------------------------------
 proc _LockMem
 
-%$Handle	arg	2		; Internal handle to lock
+%$Handle        arg     2               ; Internal handle to lock
 
-	push	esi
-	push	edi
+        push    esi
+        push    edi
 
-	xor	ecx, ecx
-	mov	cx, [ebp + %$Handle]		; Get Handle parameter
+        xor     ecx, ecx
+        mov     cx, [ebp + %$Handle]            ; Get Handle parameter
 
-	cmp	cx, 0ffffh			; Check for valid handle
-	jz	.error
+        cmp     cx, 0ffffh                      ; Check for valid handle
+        jz      .error
 
-	mov	ax, 0000h			; [DPMI 0.9] Allocate LDT Descriptor(s)
-	mov	cx, 1				; 1 descriptor needed
-	int	31h
-	jc	.error
-	mov	cx, [ebp + %$Handle]		; Get Handle
-	mov	word [SelectorList+ecx*2], ax	; Save allocated selector
-	mov	dx, ax				; Also save into a register that won't get clobbered
+        mov     ax, 0000h                       ; [DPMI 0.9] Allocate LDT Descriptor(s)
+        mov     cx, 1                           ; 1 descriptor needed
+        int     31h
+        jc      .error
+        mov     cx, [ebp + %$Handle]            ; Get Handle
+        mov     word [SelectorList+ecx*2], ax   ; Save allocated selector
+        mov     dx, ax                          ; Also save into a register that won't get clobbered
 
-	mov	esi, dword [SizeList+ecx*4]	; Split size -> si:di
-	mov	di, si
-	shr	esi, 16
-	mov	ebx, dword [LinearList+ecx*4]	; Split linear address -> bx:cx
-	mov	cx, bx
-	shr	ebx, 16
-	mov	ax, 0600h			; [DPMI 0.9] Lock Linear Region
-	int	31h
-	jc	.error
+        mov     esi, dword [SizeList+ecx*4]     ; Split size -> si:di
+        mov     di, si
+        shr     esi, 16
+        mov     ebx, dword [LinearList+ecx*4]   ; Split linear address -> bx:cx
+        mov     cx, bx
+        shr     ebx, 16
+        mov     ax, 0600h                       ; [DPMI 0.9] Lock Linear Region
+        int     31h
+        jc      .error
 
-	mov	ax, dx				; Put the selector in AX to keep it from getting clobbered
-	mov	dx, cx				; Move linear address from above (bx:cx) -> cx:dx
-	mov	cx, bx
-	mov	bx, ax				; Now move the selector into BX
-	mov	ax, 0007h			; [DPMI 0.9] Set Segment Base Address
-	int	31h
-	jc	.error
+        mov     ax, dx                          ; Put the selector in AX to keep it from getting clobbered
+        mov     dx, cx                          ; Move linear address from above (bx:cx) -> cx:dx
+        mov     cx, bx
+        mov     bx, ax                          ; Now move the selector into BX
+        mov     ax, 0007h                       ; [DPMI 0.9] Set Segment Base Address
+        int     31h
+        jc      .error
 
-	mov	ax, 0008h			; [DPMI 0.9] Set Segment Limit
-	mov	cx, si				; Move size from above (si:di) -> cx:dx
-	mov	dx, di
-	int	31h
-	jc	.error
+        mov     ax, 0008h                       ; [DPMI 0.9] Set Segment Limit
+        mov     cx, si                          ; Move size from above (si:di) -> cx:dx
+        mov     dx, di
+        int     31h
+        jc      .error
 
-	mov	ax, bx				; Return selector
+        mov     ax, bx                          ; Return selector
 
-	jmp	.done
+        jmp     .done
 .error:
-	mov	cx, [ebp + %$Handle]		; Get Handle
-	mov	ax, 0				; Return 0
-	mov	word [SelectorList+ecx*2], 0	; Clear selector
+        mov     cx, [ebp + %$Handle]            ; Get Handle
+        mov     ax, 0                           ; Return 0
+        mov     word [SelectorList+ecx*2], 0    ; Clear selector
 .done:
-	pop	edi
-	pop	esi
+        pop     edi
+        pop     esi
 
 endproc
 
 ;----------------------------------------
 ; void UnlockMem(unsigned short Handle);
-; Note:
-;  This function unlocks the memory and
-;  deallocates its descriptor.
-;  After this function is called, the
-;  selector returned by LockMem will
-;  almost certainly be invalid.
+; Purpose: Unlocks memory locked by LockMem().
+; Inputs:  Handle, the library handle of the block to unlock.
+; Outputs: None
+; Notes:   After this function is called, the selector originally returned
+;          by LockMem will be invalid (and will cause an exception if used).
 ;----------------------------------------
 proc _UnlockMem
 
-%$Handle	arg	2		; Internal handle to unlock
+%$Handle        arg     2               ; Internal handle to unlock
 
-	push	esi
-	push	edi
+        push    esi
+        push    edi
 
-	xor	ecx, ecx
-	mov	cx, [ebp + %$Handle]		; Get Handle parameter
+        xor     ecx, ecx
+        mov     cx, [ebp + %$Handle]            ; Get Handle parameter
 
-	cmp	cx, 0ffffh			; Check for valid handle
-	jz	.done
+        cmp     cx, 0ffffh                      ; Check for valid handle
+        jz      .done
 
-	push	ecx				; Save handle
+        push    ecx                             ; Save handle
 
-	mov	bx, word [SelectorList+ecx*2]	; Get selector
-	cmp	bx, 0
-	jz	.done
-	mov	ax, 0001h			; [DPMI 0.9] Free LDT Descriptor
-	int	31h
+        mov     bx, word [SelectorList+ecx*2]   ; Get selector
+        cmp     bx, 0
+        jz      .done
+        mov     ax, 0001h                       ; [DPMI 0.9] Free LDT Descriptor
+        int     31h
 
-	mov	esi, dword [SizeList+ecx*4]	; Split size -> si:di
-	mov	di, si
-	shr	esi, 16
-	mov	ebx, dword [LinearList+ecx*4]	; Split linear address -> bx:cx
-	mov	cx, bx
-	shr	ebx, 16
-	mov	ax, 0601h			; [DPMI 0.9] Unlock Linear Region
-	int	31h
+        mov     esi, dword [SizeList+ecx*4]     ; Split size -> si:di
+        mov     di, si
+        shr     esi, 16
+        mov     ebx, dword [LinearList+ecx*4]   ; Split linear address -> bx:cx
+        mov     cx, bx
+        shr     ebx, 16
+        mov     ax, 0601h                       ; [DPMI 0.9] Unlock Linear Region
+        int     31h
 
-	pop	ecx				; Get handle
-	mov	word [SelectorList+ecx*2], 0	; Clear selector
+        pop     ecx                             ; Get handle
+        mov     word [SelectorList+ecx*2], 0    ; Clear selector
 
 .done:
-	pop	edi
-	pop	esi
-	
+        pop     edi
+        pop     esi
+        
 endproc
 
 ;----------------------------------------
 ; bool GetPhysicalMapping(unsigned int *LinearAddress,
 ;  short *Selector, unsigned long PhysicalAddress, int Size);
-; Note:
-;  This function maps a physical address range
-;  (such as one used to access a VESA linear
-;  framebuffer) into linear memory and also allocates
-;  a selector to access it.
-; Returns 0 on success
+; Purpose: Maps a physical memory region into linear memory space.
+; Inputs:  PhysicalAddress, the starting physical address to map.
+;          Size, the size of the region to map.
+; Outputs: LinearAddress, the linear address of the mapped region.
+;          Selector, a selector that can be used to access the region.
+;          AX=1 if an error occurred, 0 otherwise.
+; Notes:   This function is used by the library to map the physical address
+;          returned by VESA into a linear address/selector so it can be used
+;          to draw directly into the framebuffer.
 ;----------------------------------------
 proc _GetPhysicalMapping
 
@@ -250,7 +259,7 @@ proc _GetPhysicalMapping
 
         push    esi
         push    edi
-	push    ebx
+        push    ebx
 
         ; First map the physical address into linear memory
         ; If it's below the 1MB limit, just directly map it (bugfix)
@@ -264,14 +273,14 @@ proc _GetPhysicalMapping
         mov     edi, esi
         shr     esi, 16         ; SI:DI = size of region to map (bytes)
         mov     ax, 0800h       ; [DPMI 0.9] Physical Address Mapping
-	int	31h
-	jc	.error          ; Returns linear address in BX:CX
+        int     31h
+        jc      .error          ; Returns linear address in BX:CX
 
         mov     ax, 0600h       ; [DPMI 0.9] Lock Linear Region
-	int	31h
-	jc	.error
+        int     31h
+        jc      .error
 
-	shl     ebx, 16         ; Put (locked) linear address into ebx
+        shl     ebx, 16         ; Put (locked) linear address into ebx
         mov     bx, cx
 
 .LinearMappingDone:
@@ -280,6 +289,7 @@ proc _GetPhysicalMapping
 
         ; Now get a selector for the memory region
         mov     ax, 0000h       ; [DPMI 0.9] Allocate LDT Descriptor(s)
+        xor     ecx, ecx        ; Clear high word of ecx because of GDB bug
         mov     cx, 1           ; Get 1 descriptor
         int     31h
         jc      .SelectorError
@@ -304,7 +314,7 @@ proc _GetPhysicalMapping
         int     31h
         jc      .SelectorError
 
-	xor     eax, eax
+        xor     eax, eax
         jmp     .done
 .SelectorError:
         ; If error while allocating selector, free the linear mapping
@@ -333,8 +343,11 @@ endproc
 
 ;----------------------------------------
 ; void FreePhysicalMapping(unsigned int *LinearAddress, short *Selector);
-; Note:
-;  This function frees the resources alloced by GetPhysicalMapping()
+; Purpose: Frees the resources allocated by GetPhysicalMapping().
+; Inputs:  LinearAddress, the linear address of the mapping to free.
+;          Selector, the selector used to point to the mapped memory block.
+; Outputs: None
+; Notes:   LinearAddress and Selector are cleared to 0.
 ;----------------------------------------
 proc _FreePhysicalMapping
 
@@ -347,7 +360,7 @@ proc _FreePhysicalMapping
         mov     esi, [ebp+%$LinearAddressPtr]
         mov     ebx, [esi]
 
-	cmp     ebx, 100000h
+        cmp     ebx, 100000h
         jb      .LinearMappingFreeDone  ; If <1MB, don't need to free
 
         mov     ecx, ebx
@@ -362,11 +375,62 @@ proc _FreePhysicalMapping
         mov     bx, [esi]       ; BX = selector to free
         test    bx, bx          ; Make sure the selector is valid (eg, not 0)
         jz      .Done
-	mov     ax, 0001h       ; [DPMI 0.9] Free LDT Descriptor
+        mov     ax, 0001h       ; [DPMI 0.9] Free LDT Descriptor
         int     31h
 
         mov     word [esi], 0
 
 .Done:
         pop     esi
+endproc
+
+;----------------------------------------
+; bool LockArea(short Selector, unsigned int Offset, unsigned int Length)
+; Purpose: Locks an area of memory so it's safe for an interrupt handler
+;          to access
+; Inputs:  Selector, selector of the area to lock
+;          Offset, offset in selector of the start of the area
+;          Length, length of the area
+; Outputs: AX=1 on error, 0 otherwise
+;----------------------------------------
+proc _LockArea
+
+%$Selector      arg     2
+%$Offset        arg     4
+%$Length        arg     4
+
+        push    esi
+        push    edi
+
+        mov     ax, 0006h               ; [DPMI 0.9] Get Segment Base Address
+        mov     bx, [ebp+%$Selector]
+        int     31h
+        jc      .Done
+
+        shl     ecx, 16                 ; Move cx:dx address into ecx
+        mov     cx, dx
+
+        add     ecx, [ebp+%$Offset]     ; Add in offset into selector
+        
+        mov     ebx, ecx                ; Linear address in bx:cx
+        shr     ebx, 16
+
+        mov     esi, [ebp+%$Length]     ; Length in si:di
+        mov     edi, esi
+        shr     esi, 16
+
+        mov     ax, 0600h               ; [DPMI 0.9] Lock Linear Region
+        int     31h
+        jc      .Error
+
+        xor     eax, eax
+        jmp     short .Done
+
+.Error:
+        mov     eax, 1
+
+.Done:
+        pop     edi
+        pop     esi
+
 endproc

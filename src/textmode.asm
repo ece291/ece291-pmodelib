@@ -2,7 +2,7 @@
 ;  By Peter Johnson, 1999
 
 %include "myC32.mac"		; C interface macros
-%include "aura.inc"
+%include "globals.inc"
 
 	BITS	32
 
@@ -11,7 +11,28 @@
 	SECTION	.text
 
 ;----------------------------------------
+; void SetModeC80(void);
+; Purpose: Sets 80x25 16-color text mode.
+; Inputs:  None
+; Outputs: None
+;----------------------------------------
+	GLOBAL	_SetModeC80
+_SetModeC80
+
+	push	ebp		; preserve caller's stack frame
+
+	mov	ax, 03h		; 80x25 text mode
+	int	10h
+
+	pop	ebp		; restore caller's stack frame
+
+	ret
+
+;----------------------------------------
 ; void TextSetPage(short PageNum);
+; Purpose: Sets current visible textmode page.
+; Inputs:  PageNum, the page number to switch to (0-7)
+; Outputs: None
 ;----------------------------------------
 proc _TextSetPage
 
@@ -25,7 +46,10 @@ endproc
 
 ;----------------------------------------
 ; void TextClearScreen(void);
-; NOTE: Assumes es=[_textdescriptor]
+; Purpose: Clears the textmode screen (first page only)
+; Inputs:  None
+; Outputs: None
+; Notes:   Assumes es=[_textdescriptor]
 ;----------------------------------------
 	GLOBAL	_TextClearScreen
 _TextClearScreen
@@ -43,7 +67,13 @@ _TextClearScreen
 
 ;----------------------------------------
 ; void TextWriteChar(short X, short Y, short Char, short Attrib);
-; NOTE: Assumes es=[_textdescriptor]
+; Purpose: Writes a single character (with attribute) to the textmode screen.
+; Inputs:  X, column at which to write the character (0-79)
+;          Y, row at which to write the character (0-24)
+;          Char, character to write to the screen (0-255)
+;          Attrib, attribute with which to draw the character
+; Outputs: None
+; Notes:   Assumes es=[_textdescriptor]
 ;----------------------------------------
 proc _TextWriteChar
 
@@ -73,7 +103,13 @@ endproc
 
 ;----------------------------------------
 ; void TextWriteString(short X, short Y, char *String, short Attrib);
-; NOTE: Assumes es=[_textdescriptor], String in ds
+; Purpose: Writes a string (with attribute) to the textmode screen.
+; Inputs:  X, column at which to write the first character (0-79)
+;          Y, row at which to write the first character (0-24)
+;          String, string to write to the screen
+;          Attrib, attribute with which to draw the string
+; Outputs: None
+; Notes:   Assumes es=[_textdescriptor], String in ds
 ;----------------------------------------
 proc _TextWriteString
 

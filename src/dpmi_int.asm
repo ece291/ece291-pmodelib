@@ -3,7 +3,7 @@
 
 %include "myC32.mac"
 
-	SECTION	.bss
+	SECTION .bss
 
 	GLOBAL	DPMI_Regs
 	GLOBAL	DPMI_EDI
@@ -21,7 +21,8 @@
 	GLOBAL	DPMI_SP
 	GLOBAL	DPMI_SS
 
-DPMI_Regs		; DPMI Registers Structure
+; DPMI Registers Structure
+DPMI_Regs
 DPMI_EDI	resd	1
 DPMI_ESI	resd	1
 DPMI_EBP	resd	1
@@ -46,14 +47,20 @@ DPMI_SS		resw	1
 
 _Transfer_Buf		resw	1	; DPMI Transfer Buffer (Selector)
 _Transfer_Buf_Seg	resw	1	; DPMI Transfer Buffer (RM Segment)
-_Transfer_Buf_Size	equ	2048*16	; Size of Transfer Buffer
+_Transfer_Buf_Size	equ	2048*16 ; Size of Transfer Buffer
 
-	SECTION	.text
+	SECTION .text
 
 ;----------------------------------------
-; DPMI_Int function
-; Note: Assumes DPMI_Regs is filled before call
-;  and bx contains the interrupt number
+; DPMI_Int
+; Purpose: Simulate a real-mode interrupt with the ability to set
+;	   ALL registers, including segments, without faulting
+; Inputs:  DPMI_Regs filled with RM interrupt inputs
+;	   BX=the interrupt number
+; Outputs: DPMI_Regs filled with RM interrupt outputs
+;	   CF=1 if error, AX=error code (see DPMI ref for codes)
+; Notes:   Clobbers CX, DX
+;	   Not C-Style.
 ;----------------------------------------
 	GLOBAL	DPMI_Int
 DPMI_Int
@@ -74,6 +81,10 @@ DPMI_Int
 
 ;----------------------------------------
 ; bool AllocTransferBuf(void);
+; Purpose: Allocates transfer buffer for transferring data from real to
+;	   protected mode and vice-versa.
+; Inputs:  None
+; Outputs: 1 on error, 0 otherwise
 ;----------------------------------------
 	GLOBAL	_AllocTransferBuf
 _AllocTransferBuf
@@ -101,6 +112,10 @@ _AllocTransferBuf
 
 ;----------------------------------------
 ; void FreeTransferBuf(void);
+; Purpose: Frees transfer buffer allocated by AllocTransferBuf().
+; Inputs:  None
+; Outputs: None
+; Notes:   No error checking.
 ;----------------------------------------
 	GLOBAL	_FreeTransferBuf
 _FreeTransferBuf
