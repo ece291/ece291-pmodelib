@@ -1,7 +1,7 @@
 ; Test program to get a webpage from a TCP server
 ;  By Peter Johnson, 2001
 ;
-; $Id: tcpweb.asm,v 1.1 2001/04/06 07:32:56 pete Exp $
+; $Id: tcpweb.asm,v 1.2 2001/04/07 08:02:51 pete Exp $
 %include "lib291.inc"
 
         BITS 32
@@ -49,7 +49,7 @@ _main:
 	mov	[_address+SOCKADDR.Address], eax
 
 	; Connect to the remote host
-	invoke	_Socket_connect, dword [_socket], dword _address, dword SOCKADDR_size
+	invoke	_Socket_connect, dword [_socket], dword _address
 	test	eax, eax
 	jnz	near .close
 
