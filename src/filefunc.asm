@@ -1,6 +1,8 @@
-; File handling functions - Protected mode aware! :)
+; File handling functions
 ;  By Peter Johnson, 1999
-
+;
+; String handling simplifications in _OpenFile (repnz) by Jason Galliccho.
+;
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -30,7 +32,6 @@ proc _OpenFile
 	mov	esi, [ebp + %$Filename]
 	xor	edi, edi
 	mov	ecx,  1024 ; Max file name length
-	;mov	cx, [ebp + %$LenFilename]
 	cld
 	repnz	movsb
 	pop	es

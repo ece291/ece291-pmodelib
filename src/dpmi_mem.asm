@@ -9,232 +9,157 @@
 
         SECTION .data
 
-LinearList      times MAXMEMHANDLES dd 0        ; Linear addresses
-SizeList        times MAXMEMHANDLES dd 0        ; Allocated sizes (for lock function)
 HandleList      times MAXMEMHANDLES dd 0        ; DPMI Memory block handles
-SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to locked memory blocks
-
-NumHandles      db      0
+SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to memory blocks
 
         SECTION .text
 
 ;----------------------------------------
-; unsigned short AllocMem(unsigned int Size);
+; short AllocMem(unsigned int Size);
 ; Purpose: Allocates a memory block of Size bytes.
-; Inputs:  Size, the size of the memory block to allocate.
-; Outputs: A library handle to the memory block.
+; Inputs:  Size, the size (in bytes) of the memory block to allocate.
+; Outputs: AX=selector for the memory block, or -1 on error.
 ; Notes:   Can only allocate a maximum of MAXMEMHANDLES blocks.
 ;----------------------------------------
 proc _AllocMem
 
-%$Size          arg     4               ; Size (in bytes) of memory block to allocate
+%$Size          arg     4
 
-        push    esi
+.Index          equ     -4              ; free index into arrays
+
+.STACK_FRAME_SIZE	equ     20
+
+	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
+	push    esi
         push    edi
         push    es
 
-        mov     ecx, MAXMEMHANDLES
-        cmp     byte [NumHandles], MAXMEMHANDLES        ; Check to see if we have a handle free
-        jz      .error
+        mov     ax, -1
 
-.find:                                          ; Search for an empty handle
-        cmp     dword [SizeList+ecx*4], 0
-        loopnz  .find
+        xor     ecx, ecx
+.Find:                                          ; Search for an empty slot
+        cmp     word [SelectorList+ecx*2], 0
+        jne     near .Next
 
-        push    ecx                             ; Put the index on the stack
+	mov     [ebp+.Index], ecx               ; Save found index
+        
+	mov     ax, 0000h                       ; [DPMI 0.9] Allocate LDT Descriptor(s)
+        mov     cx, 1                           ; 1 descriptor needed
+        int     31h
+        jc      .Error
+        
+        mov     ecx, [ebp+.Index]               ; Retrieve index
+	mov     word [SelectorList+ecx*2], ax   ; Save allocated selector
+        
 
         mov     ax, 0501h                       ; [DPMI 0.9] Allocate Linear Memory Block
         mov     ebx, [ebp + %$Size]             ; Size of block (32 bit)
         mov     cx, bx
         shr     ebx, 16                         ; size of block is stored in bx:cx
         or      cx, 0FFFh                       ; set the lower 12 bits to 1 to page-align
-
         int     31h
+	jc      .Error
 
-        pop     edx                             ; Get the index into edx
+        mov     eax, [ebp+.Index]               ; Retrieve index
 
-        jnc     .ok
+        shl     esi, 16                         ; Combine DPMI handle si:di
+        mov     si, di                          ; into esi
+	mov     [HandleList+eax*4], esi         ; and save
+        
+        mov	dx, cx				; Move bx:cx -> cx:dx
+        mov     cx, bx
+	mov     bx, [SelectorList+eax*2]        ; Now move the selector into BX
+        mov     ax, 0007h                       ; [DPMI 0.9] Set Segment Base Address
+        int     31h
+        jc      .Error
 
-.error:
-        mov     ax, 0FFFFh                      ; Error out
-        jmp     .done
+        mov     ax, 0008h                       ; [DPMI 0.9] Set Segment Limit
+        mov     ecx, [ebp + %$Size]             ; Size of block (32 bit)
+        mov     dx, cx
+        shr     ecx, 16                         ; size of block is stored in cx:dx
+        or      dx, 0FFFh                       ; set the lower 12 bits to 1 to page-align
+	int     31h
+        jc      .Error
 
-.ok:
-        shl     ebx, 16                         ; make bx:cx -> ebx
-        mov     bx, cx
-        shl     esi, 16                         ; same for si:di -> esi
-        mov     si, di
+        mov     eax, [ebp+.Index]
+        mov     ax, [SelectorList+eax*2]        ; Return selector
 
-        mov     ecx, dword [ebp + %$Size]       ; get size
-        or      ecx, 0FFFh                      ; page align it
-        mov     dword [LinearList+edx*4], ebx   ; Save into lists
-        mov     dword [HandleList+edx*4], esi
-        mov     dword [SizeList+edx*4], ecx
+        jmp     short .Done
 
-        inc     byte [NumHandles]
-        mov     eax, edx                        ; Return the internal handle
+.Error:
+	cmp     word [SelectorList+ecx*2], 0
+        je      .DontFree
 
-.done:
+        ; Free the allocated selector
+	mov     bx, [SelectorList+ecx*2]
+	mov     ax, 0001h                       ; [DPMI 0.9] Free LDT Descriptor
+        int     31h
+	mov     word [SelectorList+ecx*2], 0    ; Show as being free in array
+.DontFree:
+	mov     ax, -1
+        jmp     short .Done
+
+.Next:	
+	inc     ecx
+        cmp     ecx, MAXMEMHANDLES
+	jl      near .Find
+
+.Done:
         pop     es
         pop     edi
         pop     esi
+	mov	esp, ebp			; discard storage for local variables
 
 endproc
 
 ;----------------------------------------
-; void FreeMem(unsigned short Handle);
+; void FreeMem(unsigned short Selector);
 ; Purpose: Frees a memory block allocated by AllocMem().
-; Inputs:  Handle, the library handle of the memory block to free.
+; Inputs:  Selector, the selector of the memory block to free.
 ; Outputs: None
-; Notes:   No error checking.
 ;----------------------------------------
 proc _FreeMem
 
-%$Handle        arg     2               ; Internal handle of memory block to free
+%$Selector	arg     2
 
         push    esi
         push    edi
         push    es
 
+        mov     bx, [ebp + %$Selector]          ; Get parameter
+
         xor     ecx, ecx
-        mov     cx, [ebp + %$Handle]            ; Get Handle parameter
-
-        cmp     cx, 0ffffh                      ; Check for valid handle
-        jz      .done
-
-        push    ecx                             ; Save index
-
-        mov     esi, dword [HandleList+ecx*4]   ; Split DPMI handle -> si:di
+.Find:                                          ; Search for selector
+        cmp     [SelectorList+ecx*2], bx
+        jne     .Next
+        
+        ; Selector is already in bx
+	mov     ax, 0001h                       ; [DPMI 0.9] Free LDT Descriptor
+        int     31h
+        
+	mov     esi, dword [HandleList+ecx*4]   ; Split DPMI handle -> si:di
         mov     di, si
         shr     esi, 16
 
         mov     ax, 0502h                       ; [DPMI 0.9] Free Memory Block
         int     31h
 
-        pop     edx                             ; Retrieve index
+        xor     eax, eax
+        mov     [HandleList+ecx*4], eax         ; Reset list values
+        mov     [SelectorList+ecx*2], ax
+        
+	jmp     short .Done
 
-        mov     dword [LinearList+edx*4], 0     ; Reset list values
-        mov     dword [SizeList+edx*4], 0
-        mov     dword [HandleList+edx*4], 0
+.Next:
+	inc     ecx
+        cmp     ecx, MAXMEMHANDLES
+	jl      .Find
 
-.done:
+.Done:
         pop     es
         pop     edi
         pop     esi
 
-endproc
-
-;----------------------------------------
-; char *LockMem(unsigned short Handle);
-; Purpose: Get a selector to an allocated memory block.
-; Inputs:  Handle, the library handle of the memory block to lock.
-; Outputs: AX=selector
-; Notes:   Not actually C-callable as such, as it doesn't return a valid
-;          C pointer, but conforms to C calling convention.
-;----------------------------------------
-proc _LockMem
-
-%$Handle        arg     2               ; Internal handle to lock
-
-        push    esi
-        push    edi
-
-        xor     ecx, ecx
-        mov     cx, [ebp + %$Handle]            ; Get Handle parameter
-
-        cmp     cx, 0ffffh                      ; Check for valid handle
-        jz      .error
-
-        mov     ax, 0000h                       ; [DPMI 0.9] Allocate LDT Descriptor(s)
-        mov     cx, 1                           ; 1 descriptor needed
-        int     31h
-        jc      .error
-        mov     cx, [ebp + %$Handle]            ; Get Handle
-        mov     word [SelectorList+ecx*2], ax   ; Save allocated selector
-        mov     dx, ax                          ; Also save into a register that won't get clobbered
-
-        mov     esi, dword [SizeList+ecx*4]     ; Split size -> si:di
-        mov     di, si
-        shr     esi, 16
-        mov     ebx, dword [LinearList+ecx*4]   ; Split linear address -> bx:cx
-        mov     cx, bx
-        shr     ebx, 16
-        mov     ax, 0600h                       ; [DPMI 0.9] Lock Linear Region
-        int     31h
-        jc      .error
-
-        mov     ax, dx                          ; Put the selector in AX to keep it from getting clobbered
-        mov     dx, cx                          ; Move linear address from above (bx:cx) -> cx:dx
-        mov     cx, bx
-        mov     bx, ax                          ; Now move the selector into BX
-        mov     ax, 0007h                       ; [DPMI 0.9] Set Segment Base Address
-        int     31h
-        jc      .error
-
-        mov     ax, 0008h                       ; [DPMI 0.9] Set Segment Limit
-        mov     cx, si                          ; Move size from above (si:di) -> cx:dx
-        mov     dx, di
-        int     31h
-        jc      .error
-
-        mov     ax, bx                          ; Return selector
-
-        jmp     .done
-.error:
-        mov     cx, [ebp + %$Handle]            ; Get Handle
-        mov     ax, 0                           ; Return 0
-        mov     word [SelectorList+ecx*2], 0    ; Clear selector
-.done:
-        pop     edi
-        pop     esi
-
-endproc
-
-;----------------------------------------
-; void UnlockMem(unsigned short Handle);
-; Purpose: Unlocks memory locked by LockMem().
-; Inputs:  Handle, the library handle of the block to unlock.
-; Outputs: None
-; Notes:   After this function is called, the selector originally returned
-;          by LockMem will be invalid (and will cause an exception if used).
-;----------------------------------------
-proc _UnlockMem
-
-%$Handle        arg     2               ; Internal handle to unlock
-
-        push    esi
-        push    edi
-
-        xor     ecx, ecx
-        mov     cx, [ebp + %$Handle]            ; Get Handle parameter
-
-        cmp     cx, 0ffffh                      ; Check for valid handle
-        jz      .done
-
-        push    ecx                             ; Save handle
-
-        mov     bx, word [SelectorList+ecx*2]   ; Get selector
-        cmp     bx, 0
-        jz      .done
-        mov     ax, 0001h                       ; [DPMI 0.9] Free LDT Descriptor
-        int     31h
-
-        mov     esi, dword [SizeList+ecx*4]     ; Split size -> si:di
-        mov     di, si
-        shr     esi, 16
-        mov     ebx, dword [LinearList+ecx*4]   ; Split linear address -> bx:cx
-        mov     cx, bx
-        shr     ebx, 16
-        mov     ax, 0601h                       ; [DPMI 0.9] Unlock Linear Region
-        int     31h
-
-        pop     ecx                             ; Get handle
-        mov     word [SelectorList+ecx*2], 0    ; Clear selector
-
-.done:
-        pop     edi
-        pop     esi
-        
 endproc
 
 ;----------------------------------------

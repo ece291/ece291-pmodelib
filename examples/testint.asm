@@ -5,7 +5,7 @@
         BITS 32
 
 
-        GLOBAL _mymain
+        GLOBAL _main
 
 SECTION .data ; Data Section
 
@@ -21,7 +21,9 @@ TimerDriver
         ret
 TimerDriver_end
 
-_mymain:
+_main:
+        call    _LibInit
+
         ; Lock up stuff interrupt will access
         invoke  _LockArea, ds, dword timercount, dword 1
         invoke  _LockArea, cs, dword TimerDriver, dword TimerDriver_end-TimerDriver
@@ -65,6 +67,7 @@ _mymain:
         ; Uninstall the timer handler!
         invoke  _Remove_Int, dword 8
 
+        call    _LibExit
         ret
         
 

@@ -5,7 +5,7 @@
         BITS 32
 
 
-        GLOBAL _mymain
+        GLOBAL _main
 
 SECTION .bss
 
@@ -21,6 +21,7 @@ SECTION .data ; Data Section
 SECTION .text ; Says that this is the start of the code section.
 
 
+; Callbacks get DPMIRegsPtr as a pointer to the DPMI registers structure
 proc MouseCallback
 %$DPMIRegsPtr	arg     4
 
@@ -35,7 +36,9 @@ proc MouseCallback
 endproc
 MouseCallback_end
 
-_mymain:
+_main:
+        call    _LibInit
+
         ; Lock up stuff interrupt will access
         invoke  _LockArea, ds, dword buttonstatus, dword 2
         invoke  _LockArea, cs, dword MouseCallback, dword MouseCallback_end-MouseCallback
@@ -46,6 +49,8 @@ _mymain:
 
         ; Get a RM callback address for the mouse callback
         invoke  _Get_RMCB, dword mouse_seg, dword mouse_off, dword MouseCallback, dword 1
+        cmp     eax, 0
+        jnz     near .error
 
         ; Install the mouse callback
       	mov	dword [DPMI_EAX], 0Ch
@@ -104,6 +109,8 @@ _mymain:
         ; Free the RM callback address
         invoke  _Free_RMCB, word [mouse_seg], word [mouse_off]
 
-        ret
+.error:
+        call    _LibExit
+	ret
         
 

@@ -6,7 +6,7 @@
 
 	BITS	32
 
-        EXTERN  _textdescriptor
+        EXTERN  _textsel
 
 	SECTION	.text
 
@@ -49,7 +49,7 @@ endproc
 ; Purpose: Clears the textmode screen (first page only)
 ; Inputs:  None
 ; Outputs: None
-; Notes:   Assumes es=[_textdescriptor]
+; Notes:   Assumes es=[_textsel]
 ;----------------------------------------
 	GLOBAL	_TextClearScreen
 _TextClearScreen
@@ -73,7 +73,7 @@ _TextClearScreen
 ;          Char, character to write to the screen (0-255)
 ;          Attrib, attribute with which to draw the character
 ; Outputs: None
-; Notes:   Assumes es=[_textdescriptor]
+; Notes:   Assumes es=[_textsel]
 ;----------------------------------------
 proc _TextWriteChar
 
@@ -109,7 +109,7 @@ endproc
 ;          String, string to write to the screen
 ;          Attrib, attribute with which to draw the string
 ; Outputs: None
-; Notes:   Assumes es=[_textdescriptor], String in ds
+; Notes:   Assumes es=[_textsel], String in ds
 ;----------------------------------------
 proc _TextWriteString
 

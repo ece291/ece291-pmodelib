@@ -7,10 +7,10 @@ ASMFLAGS = -f coff -iinclude/
 
 VPATH = examples src
 
-PROGRAMS = mousetst testint
+PROGRAMS = mousetst testint testnet
 
-OBJS = myloader.o vesa.o textmode.o gfxfiles.o filefunc.o dpmi_int.o \
-       dpmi_mem.o int_hand.o cb_hand.o dma.o
+OBJS = lib_load.o vesa.o textmode.o gfxfiles.o filefunc.o dpmi_int.o \
+       dpmi_mem.o int_wrap.o rmcbwrap.o netbios.o misc.o
 
 LIB_OBJS = $(addprefix $(OBJ)/, $(OBJS))
 
@@ -43,3 +43,4 @@ veryclean: clean
 
 mousetst: examples/mousetst.exe
 testint: examples/testint.exe
+testnet: examples/testnet.exe
