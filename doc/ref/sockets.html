@@ -1,0 +1,226 @@
+<!-- $Id: sockets.html,v 1.1 2001/04/07 16:56:31 pete Exp $ -->
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <title>291 Protected Mode Library Reference</title>
+</head>
+<body bgcolor="#FFFFFF">
+<center><h2><i>291 Protected Mode Library Reference</i></h2></center>
+<center><h3><i>IP Networking (TCP/IP, UDP/IP)</i></h3></center>
+<p>As the IP networking functions (with a few exceptions) are exact clones of
+identically-named WinSock functions, many references and tutorials are
+available on their use.  Perhaps the best function reference for WinSock is
+online at <a href="http://www.sockets.com/winsock.htm">http://www.sockets.com/winsock.htm</a>.
+As WinSock is based on the BSD socket design, almost all UNIX systems have
+<a href="http://www.freebsd.org/cgi/man.cgi">man pages</a> describing these
+functions and their behavior.  However, as this library is based on WinSock,
+there may be minor differences in operation between the UNIX descriptions and
+the operation of these functions.</p>
+<p>The functions not reflected in WinSock or BSD sockets are
+<a href="#InitSocket">InitSocket()</a>,
+<a href="#ExitSocket">ExitSocket()</a>, and
+<a href="#Socket_InstallCallback">Socket_InstallCallback()</a>.
+<a href="#InitSocket">InitSocket()</a> and
+<a href="#ExitSocket">ExitSocket()</a> function similarly to the initialization
+and shutdown functions in other modules of pmodelib.
+<a href="#Socket_InstallCallback">Socket_InstallCallback()</a> is essentially a
+mapping of WinSock's
+<a href="http://www.sockets.com/winsock.htm#AsyncSelect">WSAAsyncSelect()</a>
+function into the DOS assembly environment.</p>
+<p>In limiting the scope of this library to just TCP/IP and UDP/IP, several
+simplications were made to some of the data structures used in BSD sockets
+programming.  Also, the WinSock functions that take a "Length" parameter
+designating the length of a sockaddr structure do not take a length parameter
+in this library.</p>
+<p>Return values only indicate whether an error occurred.  To find out what
+error caused the error condition, call
+<a href="#Socket_GetLastError">Socket_GetLastError()</a>.</p>
+
+<h3><a name='DataStructures'>Data Structures</a></h3>
+<p><table border=0><tr>
+<td width=75><tt>&nbsp;</tt></td>
+<td width=50><tt><b>STRUC</b></tt></td>
+<td width=50 colspan=3><tt>SOCKADDR</tt></td>
+</tr><tr>
+<td width=75><tt>.Port</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td width=50><tt><b>resw</b></tt></td>
+<td width=50><tt>1</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td><i>Port number</i></td>
+</tr><tr>
+<td width=75><tt>.Address</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td width=50><tt><b>resd</b></tt></td>
+<td width=50><tt>1</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td><i>IP address</i></td>
+</tr><tr>
+<td width=75><tt>&nbsp;</tt></td>
+<td width=50 colspan=4><tt><b>ENDSTRUC</b></tt></td>
+</tr></table></p>
+
+<p><table border=0><tr>
+<td width=75><tt>&nbsp;</tt></td>
+<td width=50><tt><b>STRUC</b></tt></td>
+<td width=50 colspan=3><tt>HOSTENT</tt></td>
+</tr><tr>
+<td width=75><tt>.Name</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td width=50><tt><b>resd</b></tt></td>
+<td width=50><tt>1</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td><i>Pointer to official name of host (0-terminated string)</i></td>
+</tr><tr>
+<td width=75><tt>.Aliases</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td width=50><tt><b>resd</b></tt></td>
+<td width=50><tt>1</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td><i>Pointer to 0-terminated array of pointers to alias name strings</i></td>
+</tr><tr>
+<td width=75><tt>.AddrList</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td width=50><tt><b>resd</b></tt></td>
+<td width=50><tt>1</tt></td>
+<td width=50><tt>&nbsp;</tt></td>
+<td><i>Pointer to 0-terminated array of pointers to IP addresses</i></td>
+</tr><tr>
+<td width=75><tt>&nbsp;</tt></td>
+<td width=50 colspan=4><tt><b>ENDSTRUC</b></tt></td>
+</tr></table></p>
+
+<h3><a name='Constants'>Constants</a></h3>
+<p><a name='AddressConstants'><b>Addresses:</b></a>
+<table border=0><tr>
+<th width=150 align=left>Name</th>
+<th width=25>&nbsp;</th>
+<th align=left>Description</th>
+</tr><tr>
+<td width=150><tt>INADDR_ANY</tt></td>
+<td width=25>&nbsp;</td>
+<td>The "any" address (0.0.0.0); use when it doesn't matter what address a socket has.</td>
+</tr><tr>
+<td width=150><tt>INADDR_LOOPBACK</tt></td>
+<td width=25>&nbsp;</td>
+<td>The loopback address (127.0.0.1, localhost)</td>
+</tr><tr>
+<td width=150><tt>INADDR_BROADCAST</tt></td>
+<td width=25>&nbsp;</td>
+<td>The broadcast address (255.255.255.255)</td>
+</tr></table></p>
+
+<p><a name='TypeConstants'><b>Types:</b></a>
+<table border=0><tr>
+<th width=150 align=left>Name</th>
+<th width=25>&nbsp;</th>
+<th align=left>Description</th>
+</tr><tr>
+<td width=150><tt>SOCK_STREAM</tt></td>
+<td width=25>&nbsp;</td>
+<td>A stream (TCP/IP) socket.</td>
+</tr><tr>
+<td width=150><tt>SOCK_DGRAM</tt></td>
+<td width=25>&nbsp;</td>
+<td>A datagrame (UDP/IP) socket.</td>
+</tr></table></p>
+
+<p><a name='EventConstants'><b>Events:</b></a>
+<table border=0><tr>
+<th width=150 align=left>Name</th>
+<th width=25>&nbsp;</th>
+<th align=left>Description</th>
+</tr><tr>
+<td width=150><tt>SOCKEVENT_READ</tt></td>
+<td width=25>&nbsp;</td>
+<td>Socket is ready for reading.</td>
+</tr><tr>
+<td width=150><tt>SOCKEVENT_WRITE</tt></td>
+<td width=25>&nbsp;</td>
+<td>Socket is ready for writing.</td>
+</tr><tr>
+<td width=150><tt>SOCKEVENT_OOB</tt></td>
+<td width=25>&nbsp;</td>
+<td>Socket received out-of-band data.</td>
+</tr><tr>
+<td width=150><tt>SOCKEVENT_ACCEPT</tt></td>
+<td width=25>&nbsp;</td>
+<td>Socket ready to accept a new incoming connection.</td>
+</tr><tr>
+<td width=150><tt>SOCKEVENT_CONNECT</tt></td>
+<td width=25>&nbsp;</td>
+<td>Socket completed connecting.</td>
+</tr><tr>
+<td width=150><tt>SOCKEVENT_CLOSE</tt></td>
+<td width=25>&nbsp;</td>
+<td>Socket closed.</td>
+</tr></table></p>
+
+<h3><a name='InitSocket'>bool InitSocket(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Initializes socket driver.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><i>None</i></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, otherwise 0</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Call this before calling any other socket routines!</li>
+ </ul>
+</ul>
+
+<h3><a name='ExitSocket'>void ExitSocket(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Shuts down socket driver.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><i>None</i></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><i>None</i></li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Blindly assumes you called <a href="#InitSocket">InitSocket()</a>.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_InstallCallback'>bool Socket_InstallCallback(unsigned int Socket, unsigned int EventMask, unsigned int HandlerAddress)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Requests event notification for a socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, the socket to get notification events for.</li>
+  <li>EventMask, bitmask designating which events to trigger the callback for.
+  This should be an OR ( | ) of a collection of the
+  <a href="#EventConstants">event constants</a>.</li>
+  <li>HandlerAddress, address of the callback procedure.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Callback procedure should be declared as:<br>
+  void Callback(unsigned int Socket, unsigned int Event)<br>
+  (where Event is the bitmask of the events triggered).</li>
+ </ul>
+</ul>
+
+</body>
+</html>
