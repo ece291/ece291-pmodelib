@@ -5,10 +5,12 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.5 2001/04/07 08:01:30 pete Exp $
+; $Id: socket.asm,v 1.6 2001/04/10 09:07:52 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "dpmi_int.inc"
+%include "dpmi_mem.inc"
+%include "int_wrap.inc"
 
 	BITS	32
 
@@ -41,6 +43,10 @@ SOCKET_CREATE		equ	5017h
 SOCKET_GETHOSTBYADDR	equ	5018h
 SOCKET_GETHOSTBYNAME	equ	5019h
 SOCKET_GETHOSTNAME	equ	5020h
+SOCKET_INSTALLCALLBACK	equ	5021h
+SOCKET_REMOVECALLBACK	equ	5022h
+SOCKET_ADDCALLBACK	equ	5023h
+SOCKET_GETCALLBACKINFO	equ	5024h
 
 ; Maximum lengths
 STRING_MAX		equ	256
@@ -49,6 +55,9 @@ HOSTENT_ADDRLIST_MAX	equ	16
 
 	SECTION	.bss
 
+Callback_Address	resd	1	; Application callback address
+Callback_Int		resb	1	; Callback interrupt number
+Multiplex_Handle	resw	1
 VDD_Handle		resw	1
 LastError		resd	1
 NetAddr_static		resb	STRING_MAX
@@ -161,6 +170,7 @@ _InitSocket
 
 	; Get VDD handle
 	mov	eax, [DPMI_EAX]
+	mov	[Multiplex_Handle], ax
 	mov	al, 10h			; [EX291 MPX] Get VDD Handle
 	mov	[DPMI_EAX], ax
 	push	bx
@@ -207,33 +217,132 @@ _ExitSocket
 	ret
 
 ;----------------------------------------
-; bool Socket_InstallCallback(unsigned int Socket, unsigned int EventMask,
-;  unsigned int HandlerAddress);
+; bool Socket_SetCallback(unsigned int HandlerAddress);
+; Purpose: Sets up a callback for socket events.
+; Inputs:  HandlerAddress, address of callback procedure, called as:
+;           void Callback(unsigned int Socket, unsigned int Event),
+;           where Event is the bitmask (as described in Socket_InstallCallback)
+;           of the event triggering the callback.
+; Outputs: Returns 1 on error, 0 otherwise.
+; Notes:   To uninstall the callback, call this function with HandlerAddress=0.
+;----------------------------------------
+proc _Socket_SetCallback
+
+.HandlerAddress	arg	4
+
+	; Find out what mouse interrupt (IRQ) is on from multiplex driver
+	; We'll override it and chain to the multiplex driver handler
+	mov	ax, [Multiplex_Handle]
+	mov	al, 11h			; [EX291 MPX] Get Socket Interrupt
+	mov	[DPMI_EAX], ax
+	mov	bx, 2Dh
+	call	DPMI_Int
+	cmp	byte [DPMI_EAX], 1	; Not implemented!
+	jne	near .error
+
+	movzx	edx, byte [DPMI_EDX]	; Grab interrupt value
+	mov	[Callback_Int], dl	; and save
+
+	mov	ecx, [Callback_Address]	; save old callback address
+	mov	eax, [ebp+.HandlerAddress]
+	mov	[Callback_Address], eax
+	test	eax, eax		; 0 callback address -> deinstall
+	jz	near .deinstall
+
+	test	ecx, ecx		; old callback present, just update adr
+	jnz	near .ok
+
+	; Install our interrupt handler on mouse interrupt (IRQ)
+	invoke	_LockArea, ds, dword Callback_Address, dword 4
+	invoke	_LockArea, ds, dword Callback_Int, dword 1
+	invoke	_LockArea, cs, dword Socket_InterruptHandler, dword Socket_InterruptHandler_end-Socket_InterruptHandler
+	movzx	edx, byte [DPMI_EDX]
+	invoke	_Install_Int, edx, dword Socket_InterruptHandler
+	test	eax, eax
+	jnz	.error
+
+	movzx	edx, byte [Callback_Int]
+	callvdd	SOCKET_INSTALLCALLBACK
+	test	eax, eax
+	jz	.end
+
+	mov	dword [Callback_Address], 0
+	invoke	_Remove_Int, edx
+	jmp	short .error
+
+.deinstall:
+	callvdd	SOCKET_REMOVECALLBACK
+	invoke	_Remove_Int, edx
+	xor	eax, eax
+	jmp	short .end
+
+.ok:
+	xor	eax, eax
+	ret
+.error:
+	xor	eax, eax
+	inc	eax
+.end:
+	ret
+endproc
+
+;----------------------------------------
+; bool Socket_AddCallback(unsigned int Socket, unsigned int EventMask);
 ; Purpose: Requests event notification for a socket.
 ; Inputs:  Socket, the socket to get notification for.
 ;          EventMask, bitmask designating which events to trigger the
-;           callback for:
+;           callback for on that socket:
 ;           Bit 0 = READ: ready for reading
 ;           Bit 1 = WRITE: ready for writing
 ;           Bit 2 = OOB: received out-of-band data
 ;           Bit 3 = ACCEPT: incoming connection
 ;           Bit 4 = CONNECT: completed connection
 ;           Bit 5 = CLOSE: socket closed
-;          HandlerAddress, address of callback procedure, called as:
-;           void Callback(unsigned int Socket, unsigned int Event),
-;           where Event is the bitmask (as described above for EventMask)
-;           of the events triggered.
 ; Outputs: Returns 1 on error, 0 otherwise.
+; Notes:   If called more than once for a particular socket, only the last
+;          call's eventmask is active.  To disable the callback for a single
+;          socket, set EventMask=0.
 ;----------------------------------------
-proc _Socket_InstallCallback
+proc _Socket_AddCallback
 
 .Socket		arg	4
 .EventMask	arg	4
-.HandlerAddress	arg	4
 
-	mov	eax, 1
+	callvdd	SOCKET_ADDCALLBACK
 	ret
 endproc
+
+Socket_InterruptHandler
+
+	mov	eax, [Callback_Address]
+	test	eax, eax
+	jz	.chain
+
+	callvdd	SOCKET_GETCALLBACKINFO
+	test	eax, eax
+	jnz	.chain
+
+	push	edx		; Event
+	push	ecx		; Socket
+	call	dword [Callback_Address]	; call hander function
+	add	esp, byte 8	; clear stack
+
+.done:
+	; ack IRQ and don't chain if we did a callback
+	mov	al, 20h
+	cmp	byte [Callback_Int], 50h
+	jb	.lowirq
+	out	0A0h, al
+.lowirq:
+	out	20h, al
+
+	xor	eax, eax
+	ret
+
+.chain:
+	mov	eax, 1		; chain to the old interrupt (back to driver)
+	ret
+Socket_InterruptHandler_end
 
 ;----------------------------------------
 ; unsigned int Socket_accept(unsigned int Socket, SOCKADDR *Name);
@@ -244,8 +353,8 @@ endproc
 ;           the network address of the connecting entity.  The exact format of
 ;           the Addr argument is determined by the address family established
 ;           when the socket was created.
-; Outputs: Returns the socket for the accepted packet, or 0FFFFFFFFh (-1) if
-;           an error occurs.
+; Outputs: Returns the socket for the accepted connection, or 0FFFFFFFFh (-1)
+;           if an error occurs.
 ;----------------------------------------
 proc _Socket_accept
 
