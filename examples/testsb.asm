@@ -4,7 +4,7 @@
 ; Code history: 
 ;  Original Code - only tests 8bit code, as sb16.asm doesn't yet do 16bit
 ;
-; $Id: testsb.asm,v 1.3 2001/04/12 17:07:37 mu Exp $
+; $Id: testsb.asm,v 1.4 2001/04/22 18:18:40 pete Exp $
 ;
 ; Note - the various _getchar, _printf calls are for example/testing
 ; convenience.  They are still not for use in final projects.
