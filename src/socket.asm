@@ -5,7 +5,7 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.9 2001/04/12 01:07:21 pete Exp $
+; $Id: socket.asm,v 1.10 2001/04/17 23:40:31 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "dpmi_int.inc"
@@ -68,6 +68,8 @@ HostEnt_Aliases_data	resb	STRING_MAX*HOSTENT_ALIASES_MAX
 HostEnt_AddrList_data	resd	HOSTENT_ADDRLIST_MAX
 
 	SECTION .data
+
+rcsid	db	'$Id: socket.asm,v 1.10 2001/04/17 23:40:31 pete Exp $',0
 
 ALTMPX_Signature	db	'ECE291  ', 'EX291   ', 0
 ALTMPX_MinVersion	equ	0100h

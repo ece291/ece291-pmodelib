@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie.
 ;
-; $Id: rmcbwrap.asm,v 1.5 2001/03/14 20:31:31 pete Exp $
+; $Id: rmcbwrap.asm,v 1.6 2001/04/17 23:40:31 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 %include "dpmi_int.inc"
@@ -45,6 +45,8 @@ _RMCB_StackData_Offset		resd 1          ; of _RMCB_StackData to make it offset 0
 _RMCB_RM_Addresses	resd MAX_RMCBS
 
         SECTION .data
+
+rcsid	db	'$Id: rmcbwrap.asm,v 1.6 2001/04/17 23:40:31 pete Exp $',0
 
         ALIGN 4
 

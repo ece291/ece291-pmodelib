@@ -1,7 +1,7 @@
 ; DPMI Interface - Interrupt-related Functions
 ;  By Peter Johnson, 1999
 ;
-; $Id: dpmi_int.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
+; $Id: dpmi_int.asm,v 1.4 2001/04/17 23:40:32 pete Exp $
 %include "myC32.mac"
 
 	SECTION .bss
@@ -49,6 +49,10 @@ DPMI_SS		resw	1
 _Transfer_Buf		resw	1	; DPMI Transfer Buffer (Selector)
 _Transfer_Buf_Seg	resw	1	; DPMI Transfer Buffer (RM Segment)
 _Transfer_Buf_Size	equ	2048*16 ; Size of Transfer Buffer
+
+	SECTION .data
+
+rcsid	db	'$Id: dpmi_int.asm,v 1.4 2001/04/17 23:40:32 pete Exp $',0
 
 	SECTION .text
 

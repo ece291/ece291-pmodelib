@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.16 2001/03/19 19:38:13 pete Exp $
+; $Id: vbeaf.asm,v 1.17 2001/04/17 23:40:31 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -254,6 +254,8 @@ Filename	resb	256	; Driver filename (used in InitGraphics)
 FreeBEExt	resb	1	; FreeBE/AF extensions available?
 
 	SECTION	.data
+
+rcsid	db	'$Id: vbeaf.asm,v 1.17 2001/04/17 23:40:31 pete Exp $',0
 
 VBEAFName	db	'VBEAF.DRV', 0
 VBEAFEnv	db	'VBEAF_PATH', 0

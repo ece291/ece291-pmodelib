@@ -1,7 +1,7 @@
 ; DPMI Interface - Memory-related Functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: dpmi_mem.asm,v 1.8 2001/03/16 23:52:12 pete Exp $
+; $Id: dpmi_mem.asm,v 1.9 2001/04/17 23:40:32 pete Exp $
 %include "myC32.mac"
 
 %assign MAXMEMHANDLES   16                      ; Maximum number of handles available
@@ -14,6 +14,8 @@
 ___sbrk_arglen	equ	4
 
         SECTION .data
+
+rcsid	db	'$Id: dpmi_mem.asm,v 1.9 2001/04/17 23:40:32 pete Exp $',0
 
 HandleList      times MAXMEMHANDLES dd 0        ; DPMI Memory block handles
 SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to memory blocks

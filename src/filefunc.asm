@@ -1,11 +1,15 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: filefunc.asm,v 1.17 2001/04/17 22:47:17 pete Exp $
+; $Id: filefunc.asm,v 1.18 2001/04/17 23:40:32 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
 	BITS	32
+
+	SECTION .data
+
+rcsid	db	'$Id: filefunc.asm,v 1.18 2001/04/17 23:40:32 pete Exp $',0
 
 	SECTION .text
 

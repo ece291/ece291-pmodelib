@@ -6,7 +6,7 @@
 ;	- MikMod
 ;	- GUS SDK (!)
 ;
-; $Id: dma.asm,v 1.5 2000/12/18 07:28:46 pete Exp $
+; $Id: dma.asm,v 1.6 2001/04/17 23:40:32 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -78,6 +78,9 @@ DMA7_PAGE       equ     8Ah             ; chan 7 page register
 
         SECTION .data
 
+rcsid	db	'$Id: dma.asm,v 1.6 2001/04/17 23:40:32 pete Exp $',0
+
+	ALIGN 4
 mydma
         ; channel 0
         istruc DMA_ENTRY

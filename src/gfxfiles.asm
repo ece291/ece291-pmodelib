@@ -1,7 +1,7 @@
 ; Various file loading functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: gfxfiles.asm,v 1.9 2001/03/16 22:58:24 pete Exp $
+; $Id: gfxfiles.asm,v 1.10 2001/04/17 23:40:32 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "globals.inc"
@@ -11,6 +11,10 @@
 
 	EXTERN	_ScratchBlock
 	
+	SECTION .data
+
+rcsid	db	'$Id: gfxfiles.asm,v 1.10 2001/04/17 23:40:32 pete Exp $',0
+
 	SECTION .text
 
 ;----------------------------------------

@@ -9,7 +9,7 @@
 ;
 ; Version 2.0, Mar, 2000
 ;
-; $Id: netbios.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
+; $Id: netbios.asm,v 1.5 2001/04/17 23:40:31 pete Exp $
 %include "myC32.mac"            ; C interface macros
 
 %include "globals.inc"
@@ -121,6 +121,10 @@ UserCallback    resd    1       ; Callback address of main program POST handler
 ReceiveCount    resd    1
 SendCount       resd    1
 ReceiveBadPost  resd    1
+
+	SECTION .data
+
+rcsid	db	'$Id: netbios.asm,v 1.5 2001/04/17 23:40:31 pete Exp $',0
 
         SECTION .text
 

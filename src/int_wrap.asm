@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie, Shawn Hargreaves, and others.
 ;
-; $Id: int_wrap.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
+; $Id: int_wrap.asm,v 1.5 2001/04/17 23:40:32 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -40,6 +40,8 @@ _Default_PIC    resb 2
 _Altered_PIC    resb 2
 
         SECTION .data
+
+rcsid	db	'$Id: int_wrap.asm,v 1.5 2001/04/17 23:40:32 pete Exp $',0
 
         ALIGN 4
 

@@ -1,13 +1,17 @@
 ; Text Mode (80x25x16) routines
 ;  By Peter Johnson, 1999
 ;
-; $Id: textmode.asm,v 1.7 2000/12/18 07:28:46 pete Exp $
+; $Id: textmode.asm,v 1.8 2001/04/17 23:40:31 pete Exp $
 %include "myC32.mac"		; C interface macros
 %include "globals.inc"
 
 	BITS	32
 
         EXTERN  _textsel
+
+	SECTION .data
+
+rcsid	db	'$Id: textmode.asm,v 1.8 2001/04/17 23:40:31 pete Exp $',0
 
 	SECTION	.text
 
