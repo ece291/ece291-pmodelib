@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.6 2001/03/17 19:36:14 pete Exp $
+; $Id: vbeaf.asm,v 1.7 2001/03/17 20:29:33 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "filefunc.inc"
@@ -245,7 +245,7 @@ afHaveEVCStereoSync	equ	8000h	; HW stereo sync via EVC connector
 
 	SECTION .bss
 
-DriverOffset	resd	1	; Offset of malloc()'ed VBE/AF driver
+DriverOffset	resd	1	; Offset of sbrk()'ed VBE/AF driver
 DriverSize	resd	1	; Size of driver
 InGraphicsMode	resb	1	; Are we in graphics mode?
 ModeInfo	resb	AF_MODE_INFO_size
@@ -298,9 +298,9 @@ proc _LoadGraphicsDriver
 	cmp	eax, -1
 	je	.error
 
-	; Allocate memory, using malloc() so it's in our main segment
+	; Allocate memory, using sbrk() so it's in our main segment
 	; FIXME: Should we do this ourselves rather than using libc?
-	;  Probably not--malloc uses some nasty DPMI tricks and a 16-bit p-mode 
+	;  Probably not--sbrk uses some nasty DPMI tricks and a 16-bit p-mode 
 	;  (yuck :) function to accomplish the magic of extending the CS
 	;  selector limit.
 	invoke	___sbrk, dword [DriverSize]
