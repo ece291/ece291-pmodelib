@@ -1,4 +1,4 @@
-<!-- $Id: reference.html,v 1.3 2001/02/28 22:35:44 pete Exp $ -->
+<!-- $Id: reference.html,v 1.4 2001/03/02 08:25:11 pete Exp $ -->
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
@@ -65,22 +65,15 @@ Pointer parameters take the address of the variable, not the contents.<br>
   <li><a href='#TextWriteChar'>_TextWriteChar</a></li>
   <li><a href='#TextWriteString'>_TextWriteString</a></li>
  </ul>
- <li>EX291 Graphics Functions</li>
+ <li>High-Res VBE/AF Graphics Functions</li>
  <ul>
-  <li><a href='#SetGraphics'>_SetGraphics</a></li>
-  <li><a href='#UnsetGraphics'>_UnsetGraphics</a></li>
-  <li><a href='#WritePixel'>_WritePixel</a></li>
-  <li><a href='#ReadPixel'>_ReadPixel</a></li>
-  <li><a href='#RefreshVideoBuffer'>_RefreshVideoBuffer</a></li>
- </ul>
- <li>VESA LFB Graphics Functions</li>
- <ul>
-  <li><a href='#CheckVESA'>_CheckVESA</a></li>
-  <li><a href='#SetVESA'>_SetVESA</a></li>
-  <li><a href='#UnsetVESA'>_UnsetVESA</a></li>
-  <li><a href='#WritePixelVESA'>_WritePixelVESA</a></li>
-  <li><a href='#ReadPixelVESA'>_ReadPixelVESA</a></li>
-  <li><a href='#RefreshVideoBufferVESA'>_RefreshVideoBufferVESA</a></li>
+  <li><a href='#LoadGraphicsDriver'>_LoadGraphicsDriver</a></li>
+  <li><a href='#InitGraphics'>_InitGraphics</a></li>
+  <li><a href='#ExitGraphics'>_ExitGraphics</a></li>
+  <li><a href='#FindGraphicsMode'>_FindGraphicsMode</a></li>
+  <li><a href='#SetGraphicsMode'>_SetGraphicsMode</a></li>
+  <li><a href='#UnsetGraphicsMode'>_UnsetGraphicsMode</a></li>
+  <li><a href='#CopyToScreen'>_CopyToScreen</a></li>
  </ul>
  <li>NetBIOS Networking</li>
  <ul>
@@ -120,11 +113,6 @@ Pointer parameters take the address of the variable, not the contents.<br>
 <TD>_Transfer_Buf_Size</TD>
 <TD width=25>&nbsp;</TD>
 <TD>Size of Real Mode Transfer Buffer</TD>
-<TD width=25>&nbsp;</TD>
-</TR><TR>
-<TD>_VideoBlock</TD>
-<TD width=25>&nbsp;</TD>
-<TD>PM Selector of video backbuffer (initialized by <a href="#SetGraphics">SetGraphics()</a>)</TD>
 <TD width=25>&nbsp;</TD>
 </TR><TR>
 <TD>_ScratchBlock</TD>
@@ -685,142 +673,27 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
 </ul>
 
-<h3><a name='SetGraphics'>bool SetGraphics(short Width, short Height)</a></h3>
+<h3><a name='LoadGraphicsDriver'>bool LoadGraphicsDriver(char *Filename)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
-  <li>Tries to set the desired graphics mode in 32-bit color depth.</li>
+  <li>Loads and initializes the specified VBE/AF graphics driver.</li>
  </ul>
  <li>Input</li>
  <ul>
-  <li>Width, the width of the desired graphics screen (in pixels)</li>
-  <li>Height, the height of the desired graphics screen (in pixels)</li>
+  <li>Filename, full pathname of the driver to load</li>
  </ul>
  <li>Output</li>
  <ul>
   <li>1 on error, 0 otherwise</li>
  </ul>
- <li>Notes</li>
- <ul>
-  <li>Tries the EX291 graphics driver first; if it's not available, tries VESA
-   by calling <a href="#CheckVESA">CheckVESA()</a> and
-   <a href="#SetVESA">SetVESA()</a>.</li>
- </ul>
 </ul>
 
-<h3><a name='UnsetGraphics'>void UnsetGraphics(void)</a></h3>
+<h3><a name='InitGraphics'>bool InitGraphics(char *kbINT, char *kbIRQ, unsigned short *kbPort)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
-  <li>Gets out of graphics mode.</li>
- </ul>
- <li>Input</li>
- <ul>
-  <li><em>None</em></li>
- </ul>
- <li>Output</li>
- <ul>
-  <li><em>None</em></li>
- </ul>
- <li>Notes</li>
- <ul>
-  <li>Calls <a href="#UnsetVESA">UnsetVESA()</a> if VESA was autoselected as
-   the graphics driver in <a href="#SetGraphics">SetGraphics()</a>.</li>
- </ul>
-</ul>
-
-<h3><a name='WritePixel'>void WritePixel(short X, short Y, unsigned int Color)</a></h3>
-<ul>
- <li>Purpose</li>
- <ul>
-  <li>Draws a pixel on the backbuffer.</li>
- </ul>
- <li>Input</li>
- <ul>
-  <li>X, the x coordinate of the point to draw</li>
-  <li>Y, the y coordinate of the point to draw</li>
-  <li>Color, the 32-bit color value to draw</li>
- </ul>
- <li>Output</li>
- <ul>
-  <li><em>None</em></li>
- </ul>
- <li>Notes</li>
- <ul>
-  <li>Calls <a href="#WritePixelVESA">WritePixelVESA()</a> if VESA was
-   autoselected as the graphics driver in
-   <a href="#SetGraphics">SetGraphics()</a>.</li>
- </ul>
-</ul>
-
-<h3><a name='ReadPixel'>unsigned int ReadPixel(short X, short Y)</a></h3>
-<ul>
- <li>Purpose</li>
- <ul>
-  <li>Reads the color value of a pixel on the backbuffer.</li>
- </ul>
- <li>Input</li>
- <ul>
-  <li>X, the x coordinate of the point to read</li>
-  <li>Y, the y coordinate of the point to read</li>
- </ul>
- <li>Output</li>
- <ul>
-  <li>Returns the 32-bit color value of the pixel</li>
- </ul>
- <li>Notes</li>
- <ul>
-  <li>Calls <a href="#ReadPixelVESA">ReadPixelVESA()</a> if VESA was
-   autoselected as the graphics driver in
-   <a href="#SetGraphics">SetGraphics()</a>.</li>
- </ul>
-</ul>
-
-<h3><a name='RefreshVideoBuffer'>void RefreshVideoBuffer(void)</a></h3>
-<ul>
- <li>Purpose</li>
- <ul>
-  <li>Copies the backbuffer to the display memory.</li>
- </ul>
- <li>Input</li>
- <ul>
-  <li>_VideoBlock filled with new screen data</li>
- </ul>
- <li>Output</li>
- <ul>
-  <li><em>None</em></li>
- </ul>
- <li>Notes</li>
- <ul>
-  <li>Calls <a href="#RefreshVideoBufferVESA">RefreshVideoBufferVESA()</a> if
-   VESA was autoselected as the graphics driver in
-   <a href="#SetGraphics">SetGraphics()</a>.</li>
- </ul>
-</ul>
-
-<h3><a name='CheckVESA'>bool CheckVESA(unsigned int mode)</a></h3>
-<ul>
- <li>Purpose</li>
- <ul>
-  <li>Checks to see if VESA is available and if the desired VESA mode is
-   available.</li>
- </ul>
- <li>Input</li>
- <ul>
-  <li><em>None</em></li>
- </ul>
- <li>Output</li>
- <ul>
-  <li>Returns 1 on error, otherwise 0</li>
- </ul>
-</ul>
-
-<h3><a name='SetVESA'>bool SetVESA(void)</a></h3>
-<ul>
- <li>Purpose</li>
- <ul>
-  <li>Sets the VESA graphics mode selected by
-   <a href="#CheckVESA">CheckVESA()</a>.</li>
+  <li>Initializes VBE/AF graphics driver.</li>
  </ul>
  <li>Input</li>
  <ul>
@@ -829,21 +702,16 @@ Pointer parameters take the address of the variable, not the contents.<br>
  <li>Output</li>
  <ul>
   <li>1 on error, 0 otherwise</li>
-  <li>ES = VESA selector</li>
- </ul>
- <li>Notes</li>
- <ul>
-  <li>Assumes <a href="#CheckVESA">CheckVESA()</a> has been called to determine
-   if VESA is available and to fill the various internal library structures
-   necessary for this function to work.</li>
+  <li>kbINT, kbIRQ, and kbPort values set to current keyboard settings
+   (9, 1, and 60h if no VBE/AF keyboard extension present)</li>
  </ul>
 </ul>
 
-<h3><a name='UnsetVESA'>void UnsetVESA(void)</a></h3>
+<h3><a name='ExitGraphics'>void ExitGraphics(void)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
-  <li>Gets out of VESA mode.</li>
+  <li>Shuts down graphics driver.</li>
  </ul>
  <li>Input</li>
  <ul>
@@ -853,24 +721,75 @@ Pointer parameters take the address of the variable, not the contents.<br>
  <ul>
   <li><em>None</em></li>
  </ul>
- <li>Notes</li>
- <ul>
-  <li>If ES is still set to the VESA selector set by
-   <a href="#SetVESA">SetVESA()</a>, it will become invalid.</li>
- </ul>
 </ul>
 
-<h3><a name='WritePixelVESA'>void WritePixelVESA(short X, short Y, unsigned int Color)</a></h3>
+<h3><a name='FindGraphicsMode'>short FindGraphicsMode(short Width, short Height, short Depth, bool Emulated)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
-  <li>Draws a pixel on the screen.</li>
+  <li>Tries to find a graphics mode matching the desired settings.</li>
  </ul>
  <li>Input</li>
  <ul>
-  <li>X, the x coordinate of the point to draw</li>
-  <li>Y, the y coordinate of the point to draw</li>
-  <li>Color, the 32-bit color value to draw</li>
+  <li>Width, width of desired resolution (in pixels)</li>
+  <li>Height, height of desired resolution (in pixels)</li>
+  <li>Depth, bits per pixel (8, 16, 24, 32)</li>
+  <li>Emulated, include driver-emulated modes (EX291)? (1=Yes, 0=No)</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the mode number, or -1 if no matching mode found.</li>
+ </ul>
+</ul>
+
+<h3><a name='SetGraphicsMode'>bool SetGraphicsMode(short Mode)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sets a new graphics mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Mode, mode number returned by FindGraphicsMode()</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>nonzero on error, 0 otherwise</li>
+ </ul>
+</ul>
+
+<h3><a name='UnsetGraphicsMode'>void UnsetGraphicsMode(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets out of current graphics mode.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li><em>None</em></li>
+ </ul>
+</ul>
+
+<h3><a name='CopyToScreen'>void CopyToScreen(void *Source, int SourcePitch, int SourceLeft, int SourceTop, int Width, int Height, int DestLeft, int DestTop)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Copies a portion of the source image to the display memory.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Source, start address of source linear bitmap image</li>
+  <li>SourcePitch, total width of source image (in bytes)</li>
+  <li>SourceLeft, starting x coordinate of source area</li>
+  <li>SourceTop, starting y coordinate of source area</li>
+  <li>Width, width of area to copy (in pixels)</li>
+  <li>Height, height of area to copy (in pixels)</li>
+  <li>DestLeft, starting x coordinate of destination area</li>
+  <li>DestTop, starting y coordinate of destination area</li>
  </ul>
  <li>Output</li>
  <ul>
@@ -878,48 +797,7 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
  <li>Notes</li>
  <ul>
-  <li>Assumes ES is VESA selector set by <a href="#SetVESA">SetVESA()</a>.</li>
- </ul>
-</ul>
-
-<h3><a name='ReadPixelVESA'>unsigned int ReadPixelVESA(short X, short Y)</a></h3>
-<ul>
- <li>Purpose</li>
- <ul>
-  <li>Reads the color value of a pixel on the screen.</li>
- </ul>
- <li>Input</li>
- <ul>
-  <li>X, the x coordinate of the point to read</li>
-  <li>Y, the y coordinate of the point to read</li>
- </ul>
- <li>Output</li>
- <ul>
-  <li>Returns the 32-bit color value of the pixel</li>
- </ul>
- <li>Notes</li>
- <ul>
-  <li>Assumes ES is VESA selector set by <a href="#SetVESA">SetVESA()</a>.</li>
- </ul>
-</ul>
-
-<h3><a name='RefreshVideoBufferVESA'>void RefreshVideoBufferVESA(void)</a></h3>
-<ul>
- <li>Purpose</li>
- <ul>
-  <li>Copies the backbuffer to the display memory.</li>
- </ul>
- <li>Input</li>
- <ul>
-  <li>_VideoBlock filled with new screen data</li>
- </ul>
- <li>Output</li>
- <ul>
-  <li><em>None</em></li>
- </ul>
- <li>Notes</li>
- <ul>
-  <li>Assumes ES is VESA selector set by <a href="#SetVESA">SetVESA()</a>.</li>
+  <li>Source must have the same pixel format as the current video mode.</li>
  </ul>
 </ul>
 
