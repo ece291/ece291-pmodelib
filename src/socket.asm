@@ -5,7 +5,7 @@
 ;  function's behavior under all circumstances.  See the library reference for
 ;  full documentation.
 ;
-; $Id: socket.asm,v 1.4 2001/04/04 20:49:52 pete Exp $
+; $Id: socket.asm,v 1.5 2001/04/07 08:01:30 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "dpmi_int.inc"
@@ -66,8 +66,6 @@ SOCKET_Version		equ	0100h
 HostEnt_static	ISTRUC	HOSTENT
 at HOSTENT.Name,	dd	HostEnt_Name_static
 at HOSTENT.Aliases,	dd	HostEnt_Aliases_static
-at HOSTENT.AddrType,	dd	0
-at HOSTENT.Length,	dd	4
 at HOSTENT.AddrList,	dd	HostEnt_AddrList_static
 	IEND
 
@@ -238,7 +236,7 @@ proc _Socket_InstallCallback
 endproc
 
 ;----------------------------------------
-; unsigned int Socket_accept(unsigned int Socket, SOCKADDR *Name, int *NameLen);
+; unsigned int Socket_accept(unsigned int Socket, SOCKADDR *Name);
 ; Purpose: Accepts a connection on a socket.
 ; Inputs:  Socket, a socket which is listening for connections after a
 ;           Socket_Listen().
@@ -246,37 +244,30 @@ endproc
 ;           the network address of the connecting entity.  The exact format of
 ;           the Addr argument is determined by the address family established
 ;           when the socket was created.
-;          NameLen, an optional (may be 0) pointer to an integer which contains
-;           the length of the network address Addr.  Required if Addr is given.
 ; Outputs: Returns the socket for the accepted packet, or 0FFFFFFFFh (-1) if
 ;           an error occurs.
-;          The int pointed to by NameLen will contain the actual length in
-;           bytes of the network address returned in Addr.
 ;----------------------------------------
 proc _Socket_accept
 
 .Socket		arg	4
 .Name		arg	4
-.NameLen	arg	4
 
 	callvdd	SOCKET_ACCEPT
 	ret
 endproc
 
 ;----------------------------------------
-; bool Socket_bind(unsigned int Socket, SOCKADDR *Name, int NameLen);
+; bool Socket_bind(unsigned int Socket, SOCKADDR *Name);
 ; Purpose: Associates a local address with a socket.
 ; Inputs:  Socket, an unbound socket.
 ;          Name, the structure containing the network address to assign to the
 ;           socket.
-;          NameLen, the length of the Name.
 ; Outputs: Returns 1 on error, 0 otherwise.
 ;----------------------------------------
 proc _Socket_bind
 
 .Socket		arg	4
 .Name		arg	4
-.NameLen	arg	4
 
 	callvdd	SOCKET_BIND
 	ret
@@ -297,61 +288,51 @@ proc _Socket_close
 endproc
 
 ;----------------------------------------
-; bool Socket_connect(unsigned int Socket, SOCKADDR *Name, int NameLen);
+; bool Socket_connect(unsigned int Socket, SOCKADDR *Name);
 ; Purpose: Establishes a connection to a peer.
 ; Inputs:  Socket, an unconnected socket.
 ;          Name, the structure containing the network address of the peer to
 ;           which the socket is to be connected.
-;          NameLen, the length of the Name.
 ; Outputs: Returns 1 on error, 0 otherwise.
 ;----------------------------------------
 proc _Socket_connect
 
 .Socket		arg	4
 .Name		arg	4
-.NameLen	arg	4
 
 	callvdd	SOCKET_CONNECT
 	ret
 endproc
 
 ;----------------------------------------
-; bool Socket_getpeername(unsigned int Socket, SOCKADDR *Name, int *NameLen);
+; bool Socket_getpeername(unsigned int Socket, SOCKADDR *Name);
 ; Purpose: Gets the address of the peer to which a socket is connected.
 ; Inputs:  Socket, a connected socket.
 ;          Name, the structure which is to receive the network address of the
 ;           peer.
-;          NameLen, a pointer to the size of the Name structure.
 ; Outputs: Returns 1 on error, 0 otherwise.
-;          The int pointed to by NameLen will contain the actual length in
-;           bytes of the network address returned in Addr.
 ;----------------------------------------
 proc _Socket_getpeername
 
 .Socket		arg	4
 .Name		arg	4
-.NameLen	arg	4
 
 	callvdd	SOCKET_GETPEERNAME
 	ret
 endproc
 
 ;----------------------------------------
-; bool Socket_getsockname(unsigned int Socket, SOCKADDR *Name, int *NameLen);
+; bool Socket_getsockname(unsigned int Socket, SOCKADDR *Name);
 ; Purpose: Gets the local name for a socket.
 ; Inputs:  Socket, a bound socket.
 ;          Name, the structure which is to receive the network address of the
 ;           socket.
-;          NameLen, a pointer to the size of the Name structure.
 ; Outputs: Returns 1 on error, 0 otherwise.
-;          The int pointed to by NameLen will contain the actual length in
-;           bytes of the network address returned in Addr.
 ;----------------------------------------
 proc _Socket_getsockname
 
 .Socket		arg	4
 .Name		arg	4
-.NameLen	arg	4
 
 	callvdd	SOCKET_GETSOCKNAME
 	ret
@@ -484,7 +465,7 @@ endproc
 
 ;----------------------------------------
 ; int Socket_recvfrom(unsigned int Socket, unsigned char *Buf, int MaxLen,
-;  unsigned int Flags, SOCKADDR *From, int *FromLen);
+;  unsigned int Flags, SOCKADDR *From);
 ; Purpose: Receives a datagram and stores the source address.
 ; Inputs:  Socket, a bound socket.
 ;          Buf, the buffer for the incoming data.
@@ -495,12 +476,8 @@ endproc
 ;           Bit 1 = OOB: get out-of-band data.
 ;          From, the structure which is to receive the source network address.
 ;           Optional (may be 0).
-;          FromLen, a pointer to the size of the From structure. Optional (may
-;           be 0).
 ; Outputs: Returns the number of bytes received.  Returns 0 if the connection
 ;           has been closed, and -1 on error.
-;          The int pointed to by FromLen will contain the actual length in
-;           bytes of the network address returned in From.
 ;----------------------------------------
 proc _Socket_recvfrom
 
@@ -509,7 +486,6 @@ proc _Socket_recvfrom
 .MaxLen		arg	4
 .Flags		arg	4
 .From		arg	4
-.FromLen	arg	4
 
 	callvdd	SOCKET_RECVFROM
 	ret
@@ -539,7 +515,7 @@ endproc
 
 ;----------------------------------------
 ; int Socket_sendto(unsigned int Socket, unsigned char *Buf, int Len,
-;  unsigned int Flags, SOCKADDR *To, int ToLen);
+;  unsigned int Flags, SOCKADDR *To);
 ; Purpose: Sends a datagram to a specific destination.
 ; Inputs:  Socket, a socket.
 ;          Buf, the buffer containing the data to be transmitted.
@@ -547,7 +523,6 @@ endproc
 ;          Flags, bitmask specifying special operation for the function:
 ;           Bit 0 = OOB: send out-of-band data (stream sockets only).
 ;          To, the structure containing the network address of the destination.
-;          ToLen, the size of the To structure.
 ; Outputs: Returns the number of bytes actually transmitted, or -1 on error.
 ;----------------------------------------
 proc _Socket_sendto
@@ -557,7 +532,6 @@ proc _Socket_sendto
 .Len		arg	4
 .Flags		arg	4
 .To		arg	4
-.ToLen		arg	4
 
 	callvdd	SOCKET_SENDTO
 	ret
