@@ -4,7 +4,7 @@
 ; Code history: 
 ;  Original Code - only tests 8bit code, as sb16.asm doesn't yet do 16bit
 ;
-; $Id: testsb.asm,v 1.2 2001/04/07 22:08:05 mu Exp $
+; $Id: testsb.asm,v 1.3 2001/04/12 17:07:37 mu Exp $
 ;
 ; Note - the various _getchar, _printf calls are for example/testing
 ; convenience.  They are still not for use in final projects.
@@ -115,7 +115,7 @@ _main
 	call	_printf
 	add	esp, 4
 	movzx	eax, byte [DMAChan]
-	invoke	_DMA_Start, eax, dword [DMAAddr], dword SIZE, dword 1, dword 0
+	invoke	_DMA_Start, eax, dword [DMAAddr], dword SIZE, dword 1, dword 1
 	; DMA_Start doesn't report error
 	push	dword .done
 	call	_printf
@@ -123,7 +123,7 @@ _main
 	push	dword .sbstart
 	call	_printf
 	add	esp, 4
-	invoke	_SB16_Start, dword SIZE/2, dword 1, dword 0
+	invoke	_SB16_Start, dword SIZE/2, dword 1, dword 1
 	test	eax, eax
 	jnz	near .error
 	push	dword .done
