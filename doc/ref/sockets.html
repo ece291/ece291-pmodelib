@@ -1,4 +1,4 @@
-<!-- $Id: sockets.html,v 1.3 2001/04/12 00:23:57 pete Exp $ -->
+<!-- $Id: sockets.html,v 1.4 2001/04/12 01:07:48 pete Exp $ -->
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
@@ -243,6 +243,441 @@ error caused the error condition, call
   <li>If called more than once for a particular socket, only the last call's
   EventMask is active.  To disable callbacks for a particular socket, set
   EventMask=0.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_accept'>unsigned int Socket_accept(unsigned int Socket, SOCKADDR *Name)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Accepts a connection on a socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a socket which is listening for connections after a
+  Socket_Listen().</li>
+  <li>Name, an optional (may be 0) pointer to a structure which receives
+  the network address of the connecting entity.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Name structure filled if pointer nonzero and no error.</li>
+  <li>Returns the socket for the accepted connection, or 0FFFFFFFFh (-1) if an
+  error occurs.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_bind'>bool Socket_bind(unsigned int Socket, SOCKADDR *Name)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Associates a local address with a socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, an unbound socket.</li>
+  <li>Name, the structure containing the network address to assign to the
+  socket.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_close'>bool Socket_close(unsigned int Socket)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Closes a socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, the socket to close.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_connect'>bool Socket_connect(unsigned int Socket, SOCKADDR *Name)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Establishes a connection to a peer.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, an unconnected socket.</li>
+  <li>Name, the structure containing the network address of the peer to which
+  the socket is to be connected.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_create'>unsigned int Socket_create(int Type)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Creates a socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Type, type of socket to create, must be one of the
+  <a href="#TypeConstants">type constants</a>.</li></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns socket, or 0FFFFFFFFh (-1) if an error occurs.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_getpeername'>bool Socket_getpeername(unsigned int Socket, SOCKADDR *Name)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets the address of the peer to which a socket is connected.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a connected socket.</li>
+  <li>Name, the structure which is to receive the network address of the
+  peer.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Name structure filled if no error.</li>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_getsockname'>bool Socket_getsockname(unsigned int Socket, SOCKADDR *Name)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets the local name for a socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a bound socket.</li>
+  <li>Name, the structure which is to receive the network address of the
+  socket.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Name structure filled if no error.</li>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_ntohl'>unsigned int Socket_ntohl(unsigned int NetVal)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts an unsigned int from network to host byte order.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>NetVal, a 32-bit number in network byte order.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the NetVal in host byte order.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_htonl'>unsigned int Socket_htonl(unsigned int HostVal)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts an unsigned int from host to network byte order.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>HostVal, a 32-bit number in host byte order.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the HostVal in network byte order.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_ntohs'>unsigned short Socket_ntohs(unsigned short NetVal)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts an unsigned short from network to host byte order.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>NetVal, a 16-bit number in network byte order.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the NetVal in host byte order.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_htons'>unsigned short Socket_htons(unsigned short HostVal)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts an unsigned short from host to network byte order.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>HostVal, a 16-bit number in host byte order.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the HostVal in network byte order.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_inet_addr'>unsigned int Socket_inet_addr(char *DottedAddress)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts a string containing a dotted address into a 32-bit address.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>DottedAddress, string representing a number expressed in the Internet
+  standard "." notation.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the Internet address corresponding to DottedAddress in network
+  byte order.  Returns 0 if DottedAddress is invalid.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_inet_ntoa'>char *Socket_inet_ntoa(unsigned int Address)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Converts a 32-bit network address into a string in dotted format.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Address, Internet address to convert.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns pointer to a 0-terminated static buffer containing the network
+  address in standard "." notation.  This buffer is overwritten on subsequent
+  calls to this function.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_listen'>bool Socket_listen(unsigned int Socket, int BackLog)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Establishes a socket to listen for incoming connections.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a bound, unconnected socket.</li>
+  <li>BackLog, the maximum length to which the queue of pending connections may
+  grow.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>BackLog is silently limited to between 1 and 5.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_recv'>int Socket_recv(unsigned int Socket, unsigned char *Buf, int MaxLen, unsigned int Flags)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Receives data from a connected socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a connected socket.</li>
+  <li>Buf, the buffer for the incoming data.</li>
+  <li>MaxLen, the maximum number of bytes to receive.</li>
+  <li>Flags, bitmask specifying special operation for the function:<br>
+  Bit 0 = PEEK: peek at the incoming data.  The data is copied into the buffer
+  but is not removed from the input queue.<br>
+  Bit 1 = OOB: get out-of-band data.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the number of bytes received.  Returns 0 if the connection has
+  been closed, and -1 on error.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_recvfrom'>int Socket_recvfrom(unsigned int Socket, unsigned char *Buf, int MaxLen, unsigned int Flags, SOCKADDR *From)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Receives a datagram and stores the source address.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a bound socket.</li>
+  <li>Buf, the buffer for the incoming data.</li>
+  <li>MaxLen, the maximum number of bytes to receive.</li>
+  <li>Flags, bitmask specifying special operation for the function:<br>
+  Bit 0 = PEEK: peek at the incoming data.  The data is copied into the buffer
+  but is not removed from the input queue.<br>
+  Bit 1 = OOB: get out-of-band data.</li>
+  <li>From, an optional (may be 0) pointer to the structure which is to receive
+  the source network address.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>From structure filled if pointer nonzero and no error.</li>
+  <li>Returns the number of bytes received.  Returns 0 if the connection has
+  been closed, and -1 on error.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_send'>int Socket_send(unsigned int Socket, unsigned char *Buf, int Len, unsigned int Flags)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Transmits data on a connected socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a connected socket.</li>
+  <li>Buf, the buffer containing the data to be transmitted.</li>
+  <li>Len, the amount of data to transmit.</li>
+  <li>Flags, bitmask specifying special operation for the function:<br>
+  Bit 0 = OOB: send out-of-band data (stream sockets only).</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the number of bytes actually transmitted, or -1 on error.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_sendto'>int Socket_sendto(unsigned int Socket, unsigned char *Buf, int Len, unsigned int Flags, SOCKADDR *To)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Sends a datagram to a specific destination.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a socket.</li>
+  <li>Buf, the buffer containing the data to be transmitted.</li>
+  <li>Len, the amount of data to transmit.</li>
+  <li>Flags, bitmask specifying special operation for the function:<br>
+  Bit 0 = OOB: send out-of-band data (stream sockets only).</li>
+  <li>To, the structure containing the network address of the destination.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the number of bytes actually transmitted, or -1 on error.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_shutdown'>bool Socket_shutdown(unsigned int Socket, unsigned int Flags)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Disables sends and/or receives on a socket.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Socket, a socket.</li>
+  <li>Flags, a bitmask specifying what to disable:<br>
+  Bit 0 = subsequent receives on the socket will be disallowed.<br>
+  Bit 1 = subsequent sends will be disallowed (a FIN is sent for TCP stream
+  sockets).</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns 1 on error, 0 otherwise.</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Flags=0 has no effect.  Flags=3 (both bits set) disables both sends and
+  receives; however, the socket will not be closed and resources used by the
+  socket will not be freed until Socket_close() is called.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_gethostbyaddr'>HOSTENT *Socket_gethostbyaddr(unsigned int Address)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets host information corresponding to an address.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Address, the network address to retreive information about, in network
+  byte order.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns a pointer to a static HOSTENT structure, or 0 on error.  This
+  buffer is overwritten on subsequent calls to this function.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_gethostbyname'>HOSTENT *Socket_gethostbyname(char *Name)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets host information corresponding to a hostname.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Name, a pointer to the name of the host.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns a pointer to a static HOSTENT structure, or 0 on error.  This
+  buffer is overwritten on subsequent calls to this function.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_gethostname'>bool Socket_gethostname(char *Name, int NameLen)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Gets the standard host name for the local machine.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Name, a pointer to a buffer that will receive the host name.</li>
+  <li>NameLen, the length of the buffer.</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Name filled with the host name of the local machine if no error.</li>
+  <li>Returns 1 on error, otherwise 0.</li>
+ </ul>
+</ul>
+
+<h3><a name='Socket_GetLastError'>int Socket_GetLastError(void)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Get the error status for the last operation which failed.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li><i>None</i></li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns the error code.</li>
  </ul>
 </ul>
 
