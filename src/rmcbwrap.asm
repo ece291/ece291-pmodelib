@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie.
 ;
-; $Id: rmcbwrap.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
+; $Id: rmcbwrap.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 %include "dpmi_int.inc"
@@ -307,7 +307,7 @@ proc _Get_RMCB
 .Error:
         mov     eax, 1
 .Done:
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -354,5 +354,5 @@ proc _Free_RMCB
         jl      .FindWrapper
 
 .Done:
-
+	ret
 endproc

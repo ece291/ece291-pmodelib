@@ -9,7 +9,7 @@
 ;
 ; Version 2.0, Mar, 2000
 ;
-; $Id: netbios.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
+; $Id: netbios.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"            ; C interface macros
 
 %include "globals.inc"
@@ -167,7 +167,7 @@ proc _SendPacket
         pop     es
         pop     edi
         pop     esi
-
+	ret
 endproc
 
 ;====== Receive Interrupt (Post Function) ================================
@@ -373,6 +373,7 @@ proc _NetInit
         pop     es
         pop     edi
         pop     esi
+	ret
 endproc
 
 ;====== Network Release =================================================

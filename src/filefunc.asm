@@ -3,7 +3,7 @@
 ;
 ; String handling simplifications in _OpenFile (repnz) by Jason Galliccho.
 ;
-; $Id: filefunc.asm,v 1.6 2000/12/18 06:16:34 pete Exp $
+; $Id: filefunc.asm,v 1.7 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -59,7 +59,7 @@ proc _OpenFile
 .done:
 	pop	esi
 	pop	edi
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -76,6 +76,7 @@ proc _CloseFile
 	mov	ebx, dword [ebp + .Handle]
 	int	21h
 
+	ret
 endproc
 
 ;----------------------------------------
@@ -171,7 +172,7 @@ proc _ReadFile
         pop     edi                             ; restore caller's register variables
 	pop	esi
 	mov	esp,ebp				; discard storage for local variables
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -261,5 +262,5 @@ proc _WriteFile
         pop     edi                             ; restore caller's register variables
 	pop	esi
 	mov	esp,ebp				; discard storage for local variables
-
+	ret
 endproc

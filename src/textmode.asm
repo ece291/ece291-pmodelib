@@ -1,7 +1,7 @@
 ; Text Mode (80x25x16) routines
 ;  By Peter Johnson, 1999
 ;
-; $Id: textmode.asm,v 1.6 2000/12/18 06:16:34 pete Exp $
+; $Id: textmode.asm,v 1.7 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"		; C interface macros
 %include "globals.inc"
 
@@ -43,6 +43,7 @@ proc _TextSetPage
         mov     ah, 05h
         int     10h
 
+	ret
 endproc
 
 ;----------------------------------------
@@ -100,6 +101,7 @@ proc _TextWriteChar
 
         pop     ebx
 
+	ret
 endproc
 
 ;----------------------------------------
@@ -145,4 +147,5 @@ proc _TextWriteString
 	pop     esi
         pop     ebx
 
+	ret
 endproc

@@ -1,7 +1,7 @@
 ; Test program for mouse callback (real-mode callback wrappers)
 ;  By Peter Johnson, 1999
 ;
-; $Id: mousetst.asm,v 1.4 2000/12/18 06:16:34 pete Exp $
+; $Id: mousetst.asm,v 1.5 2000/12/18 07:28:46 pete Exp $
 %include "lib291.inc"
 
         BITS 32
@@ -35,6 +35,7 @@ proc MouseCallback
 
         pop     esi
 
+	ret
 endproc
 MouseCallback_end
 

@@ -6,7 +6,7 @@
 ;	- MikMod
 ;	- GUS SDK (!)
 ;
-; $Id: dma.asm,v 1.4 2000/12/18 06:16:34 pete Exp $
+; $Id: dma.asm,v 1.5 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -250,7 +250,7 @@ proc _DMA_Allocate_Mem
         mov     [edx], eax
         inc     eax
 .done:
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -356,7 +356,7 @@ proc _DMA_Start
 
         pop     edi
         pop     esi
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -376,7 +376,7 @@ proc _DMA_Stop
         mov     dx, [ebx+DMA_ENTRY.single]
         mov     al, [ebx+DMA_ENTRY.dma_disable]
         out     dx, al
-
+	ret
 endproc
 
 
@@ -429,7 +429,7 @@ proc _DMA_Todo
 .not16bit
 
         mov     eax, ecx        ; return count
-
+	ret
 endproc
 
 DMA_End_Funcs           ; Mark the end of code area to lock

@@ -1,7 +1,7 @@
 ; Various file loading functions
 ;  By Peter Johnson, 1999
 ;
-; $Id: gfxfiles.asm,v 1.6 2000/12/18 06:16:34 pete Exp $
+; $Id: gfxfiles.asm,v 1.7 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "globals.inc"
@@ -186,7 +186,7 @@ proc _LoadBMP
 	pop	edi
 	pop	esi
 	mov	esp, ebp		; discard storage for local variables
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -336,7 +336,7 @@ proc _SaveBMP
 	pop	edi
 	pop	esi
 	mov	esp, ebp
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -355,4 +355,5 @@ proc _ScreenShot
 
 	invoke	_SaveBMP, dword ScreenShot_fn, word [_VideoBlock], dword 0, dword WINDOW_W, dword WINDOW_H
 
+	ret
 endproc

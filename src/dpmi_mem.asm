@@ -1,7 +1,7 @@
 ; DPMI Interface - Memory-related Functions
 ;  By Peter Johnson, 1999
 ;
-; $Id: dpmi_mem.asm,v 1.5 2000/12/18 06:16:34 pete Exp $
+; $Id: dpmi_mem.asm,v 1.6 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"
 
 %assign MAXMEMHANDLES   16                      ; Maximum number of handles available
@@ -110,7 +110,7 @@ proc _AllocMem
         pop     edi
         pop     esi
 	mov	esp, ebp			; discard storage for local variables
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -160,7 +160,7 @@ proc _FreeMem
         pop     es
         pop     edi
         pop     esi
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -265,6 +265,7 @@ proc _GetPhysicalMapping
         pop     ebx
         pop     edi
         pop     esi
+	ret
 endproc
 
 ;----------------------------------------
@@ -308,6 +309,7 @@ proc _FreePhysicalMapping
 
 .Done:
         pop     esi
+	ret
 endproc
 
 ;----------------------------------------
@@ -358,5 +360,5 @@ proc _LockArea
 .Done:
         pop     edi
         pop     esi
-
+	ret
 endproc

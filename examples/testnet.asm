@@ -1,7 +1,7 @@
 ; Test program for NetBIOS
 ;  By Peter Johnson, 2000
 ;
-; $Id: testnet.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
+; $Id: testnet.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
 %include "lib291.inc"
 
         BITS 32
@@ -79,6 +79,8 @@ proc NetDriver
         pop     es
         pop     edi
         pop     esi
+
+	ret
 endproc
 NetDriver_end
 

@@ -1,7 +1,7 @@
 ; Graphics (640x480x32-bit) routines
 ;  By Peter Johnson, 2000
 ;
-; $Id: graphics.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
+; $Id: graphics.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "constant.inc"
@@ -131,7 +131,7 @@ proc _SetGraphics
 	xor	eax, eax
 	inc	eax	
 .done:
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -208,6 +208,7 @@ proc _WritePixel
 
 .Done:
 	pop	es
+	ret
 endproc
 
 ;----------------------------------------
@@ -247,7 +248,7 @@ proc _ReadPixel
 
 .Done:
 	pop	es
-
+	ret
 endproc
 
 ;----------------------------------------

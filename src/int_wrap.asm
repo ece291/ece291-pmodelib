@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie, Shawn Hargreaves, and others.
 ;
-; $Id: int_wrap.asm,v 1.3 2000/12/18 06:16:34 pete Exp $
+; $Id: int_wrap.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 
@@ -218,7 +218,7 @@ proc _Install_Int
 
         mov     eax, -1
 .Done:
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -258,7 +258,7 @@ proc _Remove_Int
         jl      .FindWrapper
 
 .Done:
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -377,7 +377,7 @@ proc _Restore_IRQ
         mov     [_Altered_PIC], cl
 
 .Done:
-
+	ret
 endproc
 
 
@@ -440,7 +440,7 @@ proc _Enable_IRQ
         mov     [_Altered_PIC], cl
 
 .Done:
-
+	ret
 endproc
 
 ;----------------------------------------
@@ -493,5 +493,5 @@ proc _Disable_IRQ
         mov     [_Altered_PIC], cl
 
 .Done:
-
+	ret
 endproc

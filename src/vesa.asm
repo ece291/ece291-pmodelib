@@ -1,7 +1,7 @@
 ; VESA (640x480x32-bit) routines
 ;  By Peter Johnson, 1999-2000
 ;
-; $Id: vesa.asm,v 1.5 2000/12/18 06:16:34 pete Exp $
+; $Id: vesa.asm,v 1.6 2000/12/18 07:28:46 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "globals.inc"
@@ -189,6 +189,7 @@ proc _CheckVESA
         pop     edi             ; restore C register vars
         pop     esi
 
+	ret
 endproc
 
 ;----------------------------------------
@@ -284,6 +285,7 @@ proc _WritePixelVESA
         mov     eax, [ebp+.Color]
         mov     [es:ebx], eax           ; draw the pixel in the desired color
 
+	ret
 endproc
 
 ;----------------------------------------
@@ -311,6 +313,7 @@ proc _ReadPixelVESA
 
         mov     eax, [es:ebx]           ; get the pixel color
 
+	ret
 endproc
 
 ;----------------------------------------
