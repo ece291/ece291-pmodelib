@@ -1,7 +1,7 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.19 2001/12/12 07:12:09 pete Exp $
+# $Id: Makefile,v 1.20 2002/01/08 03:14:33 pete Exp $
 
 # set some useful paths
 OBJ = obj
@@ -38,7 +38,7 @@ LIBOBJS = $(addprefix $(OBJ)/, $(OBJS)) $(addprefix $(OBJ)/, $(COBJS))
 all: lib $(PROGRAMS)
 	@echo All done.
 
-arscript: $(TMPLIB) $(EXTLIBOBJS)
+arscript: $(TMPLIB) $(LIBOBJS) $(EXTLIBOBJS)
 	@echo "CREATE $(LIB)" >$@
 	@echo "ADDLIB $(TMPLIB)" >>$@
 	@echo "ADDLIB $(EXTLIBS)/lpng/libpng.a" >>$@
