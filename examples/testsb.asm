@@ -4,7 +4,7 @@
 ; Code history: 
 ;  Original Code - only tests 8bit code.  See testsb16 for 16bit test.
 ;
-; $Id: testsb.asm,v 1.5 2001/04/22 18:21:24 pete Exp $
+; $Id: testsb.asm,v 1.6 2001/11/15 03:58:48 mu Exp $
 ;
 ; Note - the various _getchar, _printf calls are for example/testing
 ; convenience.  They are still not for use in final projects.
@@ -205,6 +205,8 @@ _main
 	push	dword [ISR_Called]
 	push	dword .times
 	call	_printf
+	add	esp, 8
+	call	_LibExit
 	ret
 
 .error
@@ -212,6 +214,7 @@ _main
 	call	_printf
 	add	esp, 4
 	mov	ax, 10
+	call	_LibExit
 	ret
 
 .errmsg		db	" Failed!]", 13,10,"Error", 13, 10, 0
