@@ -3,9 +3,12 @@
 ;
 ; Originally included in NASM.  Modifications by Peter Johnson, 1999.
 ;
-; $Id: myC32.mac,v 1.4 2000/12/18 07:27:43 pete Exp $
+; $Id: myC32.mac,v 1.5 2001/12/06 03:10:36 pete Exp $
 
 %imacro proc 1                  ; begin a procedure definition
+%ifctx proc
+%error Mismatched `endproc'/`proc'
+%else
 %push proc
           global %1
 %1:       push  ebp
@@ -13,6 +16,7 @@
 %assign %$arg 8
 ;%assign %$argnum 0
 %define %$procname %1
+%endif
 %endmacro
 
 %imacro arg 0-1 4               ; used with the argument name as a label
