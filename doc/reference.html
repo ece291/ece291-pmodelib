@@ -1,4 +1,4 @@
-<!-- $Id: reference.html,v 1.5 2001/03/10 19:49:38 pete Exp $ -->
+<!-- $Id: reference.html,v 1.6 2001/03/16 22:59:14 pete Exp $ -->
 <!doctype html public "-//w3c//dtd html 4.0 transitional//en">
 <html>
 <head>
@@ -27,8 +27,8 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
  <li>Memory Handling</li>
  <ul>
-  <li><a href='#AllocMem'>_AllocMem</a></li>
-  <li><a href='#FreeMem'>_FreeMem</a></li>
+  <li><a href='#AllocSelector'>_AllocSelector</a></li>
+  <li><a href='#FreeSelector'>_FreeSelector</a></li>
   <li><a href='#LockArea'>_LockArea</a></li>
   <li><a href='#GetPhysicalMapping'>_GetPhysicalMapping</a></li>
   <li><a href='#FreePhysicalMapping'>_FreePhysicalMapping</a></li>
@@ -38,13 +38,17 @@ Pointer parameters take the address of the variable, not the contents.<br>
   <li><a href='#OpenFile'>_OpenFile</a></li>
   <li><a href='#CloseFile'>_CloseFile</a></li>
   <li><a href='#ReadFile'>_ReadFile</a></li>
+  <li><a href='#ReadFile_Sel'>_ReadFile_Sel</a></li>
   <li><a href='#WriteFile'>_WriteFile</a></li>
+  <li><a href='#WriteFile_Sel'>_WriteFile_Sel</a></li>
   <li><a href='#SeekFile'>_SeekFile</a></li>
  </ul>
  <li>Graphics File Handling</li>
  <ul>
   <li><a href='#LoadBMP'>_LoadBMP</a></li>
+  <li><a href='#LoadBMP_Sel'>_LoadBMP_Sel</a></li>
   <li><a href='#SaveBMP'>_SaveBMP</a></li>
+  <li><a href='#SaveBMP_Sel'>_SaveBMP_Sel</a></li>
  </ul>
  <li>Interrupt, IRQ, and Callback Wrappers</li>
  <ul>
@@ -198,7 +202,7 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
 </ul>
 
-<h3><a name='AllocMem'>unsigned short AllocMem(unsigned int Size)</a></h3>
+<h3><a name='AllocSelector'>unsigned short AllocSelector(unsigned int Size)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
@@ -218,7 +222,7 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
 </ul>
 
-<h3><a name='FreeMem'>void FreeMem(unsigned short Selector)</a></h3>
+<h3><a name='FreeSelector'>void FreeSelector(unsigned short Selector)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
@@ -330,7 +334,25 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
 </ul>
 
-<h3><a name='ReadFile'>int ReadFile(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
+<h3><a name='ReadFile'>int ReadFile(int Handle, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads from a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to read from</li>
+  <li>Buffer, buffer to read into</li>
+  <li>Count, (maximum) number of bytes to read into buffer</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually read</li>
+ </ul>
+</ul>
+
+<h3><a name='ReadFile_Sel'>int ReadFile_Sel(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
@@ -349,7 +371,25 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
 </ul>
 
-<h3><a name='WriteFile'>int WriteFile(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
+<h3><a name='WriteFile'>int WriteFile(int Handle, void *Buffer, unsigned int Count)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Writes to a file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Handle, DOS handle of the file to write to</li>
+  <li>Buffer, buffer to read from</li>
+  <li>Count, number of bytes to write out to the file</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns number of bytes actually written</li>
+ </ul>
+</ul>
+
+<h3><a name='WriteFile_Sel'>int WriteFile_Sel(int Handle, short BufSel, void *Buffer, unsigned int Count)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
@@ -386,7 +426,29 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
 </ul>
 
-<h3><a name='LoadBMP'>bool LoadBMP(char *Name, short WhereSel, void *Where)</a></h3>
+<h3><a name='LoadBMP'>bool LoadBMP(char *Name, void *Where)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Reads a 8-bit or 24-bit BMP file into a 32-bit buffer.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Name, (path)name of the BMP file</li>
+  <li>Where, buffer to read image into</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns nonzero on error, otherwise 0</li>
+ </ul>
+ <li>Notes</li>
+ <ul>
+  <li>Assumes destination is big enough to hold loaded 32-bit image.</li>
+  <li>Doesn't return size of loaded image (width x height).</li>
+ </ul>
+</ul>
+
+<h3><a name='LoadBMP_Sel'>bool LoadBMP_Sel(char *Name, short WhereSel, void *Where)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
@@ -409,7 +471,26 @@ Pointer parameters take the address of the variable, not the contents.<br>
  </ul>
 </ul>
 
-<h3><a name='SaveBMP'>bool SaveBMP(char *Name, short Wheresel, void *Where, int Width, int Height)</a></h3>
+<h3><a name='SaveBMP'>bool SaveBMP(char *Name, void *Where, int Width, int Height)</a></h3>
+<ul>
+ <li>Purpose</li>
+ <ul>
+  <li>Saves a 32-bit image into a 24-bit BMP file.</li>
+ </ul>
+ <li>Input</li>
+ <ul>
+  <li>Name, (path)name of the BMP file</li>
+  <li>Where, image to save</li>
+  <li>Width, width of image</li>
+  <li>Height, height of image</li>
+ </ul>
+ <li>Output</li>
+ <ul>
+  <li>Returns nonzero on error, otherwise 0</li>
+ </ul>
+</ul>
+
+<h3><a name='SaveBMP_Sel'>bool SaveBMP_Sel(char *Name, short Wheresel, void *Where, int Width, int Height)</a></h3>
 <ul>
  <li>Purpose</li>
  <ul>
