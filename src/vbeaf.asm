@@ -1,9 +1,10 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.7 2001/03/17 20:29:33 pete Exp $
+; $Id: vbeaf.asm,v 1.8 2001/03/17 20:41:07 pete Exp $
 %include "myC32.mac"		; C interface macros
 
+%include "dpmi_mem.inc"
 %include "filefunc.inc"
 
 	BITS	32
@@ -290,7 +291,7 @@ proc _LoadGraphicsDriver
 	; Determine file size
 	invoke	_SeekFile, dword [ebp+.file], dword 0, word 2
 	cmp	eax, -1
-	je	.error
+	je	near .error
 	mov	[DriverSize], eax
 
 	; Seek back to start of file
@@ -316,6 +317,8 @@ proc _LoadGraphicsDriver
 	; Close driver file
 	invoke	_CloseFile, dword [ebp+.file]
 
+	; Lock driver memory
+	invoke	_LockArea, cs, dword [DriverOffset], dword [DriverSize]
 	xor	eax, eax
 	jmp	short .done
 
