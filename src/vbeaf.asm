@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.10 2001/03/17 20:59:54 pete Exp $
+; $Id: vbeaf.asm,v 1.11 2001/03/19 05:47:43 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -885,8 +885,8 @@ proc _DispatchCall
 	clc
 	mov	esi, [ebp+.Data]
 	db	0C4h, 0C4h, 058h, 002h
-	xor	eax, eax
 	salc
+	movsx	eax, al
 
 	pop	esi
 	pop	fs
