@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.5 2001/03/17 19:29:41 pete Exp $
+; $Id: vbeaf.asm,v 1.6 2001/03/17 19:36:14 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "filefunc.inc"
@@ -864,7 +864,7 @@ endproc
 ; Inputs:  Handle, 16-bit VDD DLL Handle
 ;          Command, 16-bit command ID
 ;          Data, data to pass to VDD in FS:ESI
-; Outputs: None
+; Outputs: Returns nonzero on error, zero otherwise.
 ;----------------------------------------
 proc _DispatchCall
 
@@ -884,6 +884,8 @@ proc _DispatchCall
 	clc
 	mov	esi, [ebp+.Data]
 	db	0C4h, 0C4h, 058h, 002h
+	xor	eax, eax
+	salc
 
 	pop	esi
 	pop	fs
