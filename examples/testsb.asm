@@ -2,9 +2,9 @@
 ;  By Michael Urman, 2001
 ;
 ; Code history: 
-;  Original Code - only tests 8bit code, as sb16.asm doesn't yet do 16bit
+;  Original Code - only tests 8bit code.  See testsb16 for 16bit test.
 ;
-; $Id: testsb.asm,v 1.4 2001/04/22 18:18:40 pete Exp $
+; $Id: testsb.asm,v 1.5 2001/04/22 18:21:24 pete Exp $
 ;
 ; Note - the various _getchar, _printf calls are for example/testing
 ; convenience.  They are still not for use in final projects.
@@ -36,7 +36,7 @@ ISR_Called  dd	0
 	SECTION .text
 
 ;sine16	times 410 dw 10<<7,10<<7,25<<7,50<<7,75<<7,90<<7,90<<7,75<<7,50<<7,25<<7
-sine8	times SIZE/10 dw 10,10,25,50,75,90,90,75,50,25
+sine8	times SIZE/10 db 10,10,25,50,75,90,90,75,50,25
 
 ; Simple ISR - counts number of times it's called
 _SoundISR
