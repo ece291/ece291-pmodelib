@@ -10,7 +10,7 @@ VPATH = examples src
 PROGRAMS = mousetst testint
 
 OBJS = myloader.o vesa.o textmode.o gfxfiles.o filefunc.o dpmi_int.o \
-       dpmi_mem.o int_hand.o cb_hand.o dma.o sb.o
+       dpmi_mem.o int_hand.o cb_hand.o dma.o
 
 LIB_OBJS = $(addprefix $(OBJ)/, $(OBJS))
 
