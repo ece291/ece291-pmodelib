@@ -1,11 +1,12 @@
 ; Socket (TCP/IP, UDP/IP) functions header file
 ;  By Peter Johnson, 2001
 ;
-; $Id: socket.inc,v 1.2 2001/04/07 08:01:45 pete Exp $
+; $Id: socket.inc,v 1.3 2001/04/10 09:08:09 pete Exp $
 
 	EXTERN _InitSocket
 	EXTERN _ExitSocket
-	EXTERN _Socket_InstallCallback
+	EXTERN _Socket_SetCallback
+	EXTERN _Socket_AddCallback
 	EXTERN _Socket_accept
 	EXTERN _Socket_bind
 	EXTERN _Socket_close
@@ -30,7 +31,8 @@
 	EXTERN _Socket_gethostname
 	EXTERN _Socket_GetLastError
 
-_Socket_InstallCallback_arglen	equ	12
+_Socket_SetCallback_arglen	equ	4
+_Socket_AddCallback_arglen	equ	8
 _Socket_accept_arglen		equ	8
 _Socket_bind_arglen		equ	8
 _Socket_close_arglen		equ	4
