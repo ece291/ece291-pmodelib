@@ -1,7 +1,7 @@
 ; DPMI Interface - Memory-related Functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: dpmi_mem.asm,v 1.10 2001/12/03 06:49:07 pete Exp $
+; $Id: dpmi_mem.asm,v 1.11 2003/05/01 04:07:14 pete Exp $
 %include "myC32.mac"
 
 %assign MAXMEMHANDLES   16                      ; Maximum number of handles available
@@ -15,7 +15,7 @@ ___sbrk_arglen	equ	4
 
         SECTION .data
 
-rcsid	db	'$Id: dpmi_mem.asm,v 1.10 2001/12/03 06:49:07 pete Exp $',0
+rcsid	db	'$Id: dpmi_mem.asm,v 1.11 2003/05/01 04:07:14 pete Exp $',0
 
 HandleList      times MAXMEMHANDLES dd 0        ; DPMI Memory block handles
 SelectorList    times MAXMEMHANDLES dw 0        ; Selectors to memory blocks
@@ -65,11 +65,8 @@ proc _AllocSelector
 
 .Size           arg     4
 
-.Index          equ     -4              ; free index into arrays
+.Index          local   4              ; free index into arrays
 
-.STACK_FRAME_SIZE	equ     20
-
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push    esi
         push    edi
         push    es
@@ -148,7 +145,6 @@ proc _AllocSelector
         pop     es
         pop     edi
         pop     esi
-	mov	esp, ebp			; discard storage for local variables
 	ret
 endproc
 

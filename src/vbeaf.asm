@@ -1,7 +1,7 @@
 ; VBE/AF loadable graphics driver routines
 ;  By Peter Johnson, 2001
 ;
-; $Id: vbeaf.asm,v 1.17 2001/04/17 23:40:31 pete Exp $
+; $Id: vbeaf.asm,v 1.18 2003/05/01 04:07:14 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "dpmi_mem.inc"
@@ -255,7 +255,7 @@ FreeBEExt	resb	1	; FreeBE/AF extensions available?
 
 	SECTION	.data
 
-rcsid	db	'$Id: vbeaf.asm,v 1.17 2001/04/17 23:40:31 pete Exp $',0
+rcsid	db	'$Id: vbeaf.asm,v 1.18 2003/05/01 04:07:14 pete Exp $',0
 
 VBEAFName	db	'VBEAF.DRV', 0
 VBEAFEnv	db	'VBEAF_PATH', 0
@@ -273,10 +273,8 @@ proc _LoadGraphicsDriver
 
 .Filename	arg	4
 
-.file		equ	-4		; file handle
-.STACK_FRAME_SIZE	equ	4
+.file		local	4		; file handle
 
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	es			; Set up selectors C code expects
 	push	fs
 	push	gs
@@ -336,7 +334,6 @@ proc _LoadGraphicsDriver
 	pop	gs			; Restore old selectors
 	pop	fs
 	pop	es
-	mov	esp, ebp
 	ret
 endproc
 

@@ -1,7 +1,7 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: filefunc.asm,v 1.19 2001/04/24 18:37:04 pete Exp $
+; $Id: filefunc.asm,v 1.20 2003/05/01 04:07:14 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -9,7 +9,7 @@
 
 	SECTION .data
 
-rcsid	db	'$Id: filefunc.asm,v 1.19 2001/04/24 18:37:04 pete Exp $',0
+rcsid	db	'$Id: filefunc.asm,v 1.20 2003/05/01 04:07:14 pete Exp $',0
 
 	SECTION .text
 
@@ -141,10 +141,8 @@ proc _ReadFile_Sel
 .Buffer		arg	4
 .Count		arg	4
 
-.NGot		equ	-4		; local storage for total number of bytes read
-.STACK_FRAME_SIZE	equ	4
+.NGot		local	4		; local storage for total number of bytes read
 
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	esi			; preserve caller's register variables
 	push	edi
 	push	es
@@ -217,7 +215,6 @@ proc _ReadFile_Sel
 	pop	es
 	pop	edi			; restore caller's register variables
 	pop	esi
-	mov	esp,ebp			; discard storage for local variables
 	ret
 endproc
 
@@ -256,10 +253,8 @@ proc _WriteFile_Sel
 .Buffer		arg	4
 .Count		arg	4
 
-.NPut		equ	-4		; local storage for total number of bytes written
-.STACK_FRAME_SIZE	equ	4
+.NPut		local	4		; local storage for total number of bytes written
 
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	esi			; preserve caller's register variables
 	push	edi
 	push	es
@@ -330,7 +325,6 @@ proc _WriteFile_Sel
 	pop	es
 	pop	edi			; restore caller's register variables
 	pop	esi
-	mov	esp,ebp			; discard storage for local variables
 	ret
 endproc
 

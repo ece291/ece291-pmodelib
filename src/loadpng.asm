@@ -3,7 +3,7 @@
 ;
 ; Dependent on C stdio, stdlib, and readpng.
 ;
-; $Id: loadpng.asm,v 1.1 2001/10/17 20:54:50 pete Exp $
+; $Id: loadpng.asm,v 1.2 2003/05/01 04:07:14 pete Exp $
 %include "myC32.mac"
 	BITS 32
 
@@ -30,7 +30,7 @@ image_rowbytes	resd	1
 
 	SECTION .data
 
-rcsid	db	'$Id: loadpng.asm,v 1.1 2001/10/17 20:54:50 pete Exp $'
+rcsid	db	'$Id: loadpng.asm,v 1.2 2003/05/01 04:07:14 pete Exp $'
 
 filemode	db	'rb', 0
 
@@ -54,12 +54,9 @@ proc _LoadPNG
 .Width		arg	4
 .Height		arg	4
 
-.infile		equ	-4
-.imagedata	equ	-8
+.infile		local	4
+.imagedata	local	4
 
-.STACK_FRAME_SIZE	equ     8
-
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	es
 	push	esi
 	push	edi
@@ -109,7 +106,6 @@ proc _LoadPNG
 	pop	edi
 	pop	esi
 	pop	es
-	mov	esp, ebp		; discard storage for local variables
 	ret
 endproc
 _LoadPNG_arglen	equ	16
@@ -135,10 +131,8 @@ proc _LoadPNG_Sel
 .Width		arg	4
 .Height		arg	4
 
-.infile		equ	-4
-.imagedata	equ	-8
-
-.STACK_FRAME_SIZE	equ     8
+.infile		local	4
+.imagedata	local	4	
 
 	mov	ax, ds
 	cmp	ax, word [ebp+.Wheresel]
@@ -147,7 +141,6 @@ proc _LoadPNG_Sel
 	invoke	_LoadPNG, dword [ebp+.Name], dword [ebp+.Where], dword [ebp+.Width], dword [ebp+.Height]
 	ret
 .notds:
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	es
 	push	esi
 	push	edi
@@ -215,7 +208,6 @@ proc _LoadPNG_Sel
 	pop	edi
 	pop	esi
 	pop	es
-	mov	esp, ebp		; discard storage for local variables
 	ret
 endproc
 

@@ -3,7 +3,7 @@
 ;
 ; Dependent on C stdio, stdlib, and readjpg.
 ;
-; $Id: jpg.asm,v 1.1 2001/10/17 20:54:50 pete Exp $
+; $Id: jpg.asm,v 1.2 2003/05/01 04:07:14 pete Exp $
 %include "myC32.mac"
 	BITS 32
 
@@ -26,7 +26,7 @@ image_height	resd	1
 
 	SECTION .data
 
-rcsid	db	'$Id: jpg.asm,v 1.1 2001/10/17 20:54:50 pete Exp $'
+rcsid	db	'$Id: jpg.asm,v 1.2 2003/05/01 04:07:14 pete Exp $'
 
 filemode	db	'rb', 0
 
@@ -50,12 +50,9 @@ proc _LoadJPG
 .Width		arg	4
 .Height		arg	4
 
-.infile		equ	-4
-.imagedata	equ	-8
+.infile		local	4
+.imagedata	local	4
 
-.STACK_FRAME_SIZE	equ     8
-
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	es
 	push	esi
 	push	edi
@@ -117,7 +114,6 @@ proc _LoadJPG
 	pop	edi
 	pop	esi
 	pop	es
-	mov	esp, ebp		; discard storage for local variables
 	ret
 endproc
 

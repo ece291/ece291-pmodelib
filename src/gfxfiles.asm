@@ -1,7 +1,7 @@
 ; Various file loading functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: gfxfiles.asm,v 1.10 2001/04/17 23:40:32 pete Exp $
+; $Id: gfxfiles.asm,v 1.11 2003/05/01 04:07:14 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "globals.inc"
@@ -13,7 +13,7 @@
 	
 	SECTION .data
 
-rcsid	db	'$Id: gfxfiles.asm,v 1.10 2001/04/17 23:40:32 pete Exp $',0
+rcsid	db	'$Id: gfxfiles.asm,v 1.11 2003/05/01 04:07:14 pete Exp $',0
 
 	SECTION .text
 
@@ -52,15 +52,12 @@ proc _LoadBMP_Sel
 .Wheresel	arg	2
 .Where		arg	4
 
-.file		equ	-4		; File handle (4 bytes)
-.width		equ	-8		; Image width (from header)
-.height		equ	-12		; Image height (from header)
-.bytewidth	equ	-16		; Image width (in bytes)
-.filebytewidth  equ     -20             ; Image width in file (in bytes)
+.file		local	4		; File handle (4 bytes)
+.width		local	4		; Image width (from header)
+.height		local	4		; Image height (from header)
+.bytewidth	local	4		; Image width (in bytes)
+.filebytewidth  local	4             ; Image width in file (in bytes)
 
-.STACK_FRAME_SIZE	equ     20
-
-	sub	esp, .STACK_FRAME_SIZE	; allocate space for local vars
 	push	esi
 	push	edi
 	push	ebx
@@ -202,7 +199,6 @@ proc _LoadBMP_Sel
 	pop	ebx
 	pop	edi
 	pop	esi
-	mov	esp, ebp		; discard storage for local variables
 	ret
 endproc
 
@@ -246,12 +242,9 @@ proc _SaveBMP_Sel
 .Width          arg     4
 .Height         arg     4
 
-.file		equ	-4
-.filebytewidth  equ     -8	; Image width in file (in bytes)
+.file		local	4
+.filebytewidth  local	4	; Image width in file (in bytes)
 
-.STACK_FRAME_SIZE	equ     8
-
-	sub	esp, .STACK_FRAME_SIZE	; Allocate space for local variables
 	push	esi
 	push	edi
 	push	ebx
@@ -373,7 +366,6 @@ proc _SaveBMP_Sel
 	pop	ebx
 	pop	edi
 	pop	esi
-	mov	esp, ebp
 	ret
 endproc
 
