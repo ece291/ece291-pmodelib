@@ -1,9 +1,7 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; String handling simplifications in _OpenFile (repnz) by Jason Galliccho.
-;
-; $Id: filefunc.asm,v 1.11 2001/03/16 22:58:20 pete Exp $
+; $Id: filefunc.asm,v 1.12 2001/03/17 03:33:55 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -32,10 +30,13 @@ proc _OpenFile
 	mov	[DPMI_DS], ax
 	mov	esi, [ebp + .Filename]
 	xor	edi, edi
-	mov	ecx, 1024		; Max file name length
-	cld
-	repnz	movsb
-	pop	es
+.Copy:
+	mov	al, [esi]
+	mov	[es:edi], al
+	inc	esi
+	inc	edi
+	or	al, al
+	jnz	.Copy
 	
 	cmp	word [ebp + .WriteTo], 1
 	je	.CreateNew
