@@ -1,7 +1,7 @@
 ; A simple TCP client (connects to tcpsrv example)
 ;  By Peter Johnson, 2001
 ;
-; $Id: tcpcli.asm,v 1.1 2001/04/10 09:08:53 pete Exp $
+; $Id: tcpcli.asm,v 1.2 2001/04/11 21:10:23 pete Exp $
 %include "lib291.inc"
 
         BITS 32
@@ -11,7 +11,6 @@
 
 SECTION .data
 
-_remoteaddr	db	"127.0.0.1",0		; localhost (local machine)
 _message	db	"Hello World!",13,10,0	; message to send to server
 message_len	equ	$-_message
 _port		dw	12345			; port number (host order)
@@ -25,7 +24,11 @@ _buf		resb	buf_len
 
 SECTION .text
 
-_main:
+proc _main
+
+.argc	arg	4
+.argv	arg	4
+
         call    _LibInit
 
 	; Initialize the socket library
@@ -43,10 +46,26 @@ _main:
 	;  First the port
 	invoke	_Socket_htons, word [_port]
 	mov	[_address+SOCKADDR.Port], ax
-	;  Then the address
-	invoke	_Socket_inet_addr, dword _remoteaddr
+	;  Then the address: if commandline argument, connect to that hostname,
+	;   otherwise connect to localhost (lookback address)
+	cmp	dword [ebp+.argc], 1
+	jbe	.uselocalhost
+
+	mov	eax, [ebp+.argv]		; Get pointer to argv
+	invoke	_Socket_gethostbyname, dword [eax+4]	; use argv[1]
 	test	eax, eax
 	jz	near .close
+	mov	eax, [eax+HOSTENT.AddrList]	; Get pointer to address list
+	mov	eax, [eax]			; Get pointer to first address
+	test	eax, eax			; Valid pointer?
+	jz	near .close
+	mov	eax, [eax]			; Get first address
+
+	jmp	short .doconnect
+.uselocalhost:
+	invoke	_Socket_htonl, dword INADDR_LOOPBACK
+
+.doconnect:
 	mov	[_address+SOCKADDR.Address], eax
 
 	; Connect to the remote host
@@ -65,5 +84,5 @@ _main:
 .done:
         call    _LibExit
         ret
-        
+endproc
 
