@@ -1,7 +1,7 @@
 ; Various file loading functions
-;  By Peter Johnson, 1999
+;  By Peter Johnson, 1999-2001
 ;
-; $Id: gfxfiles.asm,v 1.7 2000/12/18 07:28:46 pete Exp $
+; $Id: gfxfiles.asm,v 1.8 2001/03/16 22:36:41 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "globals.inc"
@@ -10,13 +10,7 @@
 	BITS	32
 
 	EXTERN	_ScratchBlock
-	EXTERN	_VideoBlock
 	
-	SECTION .data
-
-ScreenShot_fn	db	'MP5Out?.bmp',0 ; Filename of screenshot file
-ScreenShot_index	db	'A'
-
 	SECTION .text
 
 ;----------------------------------------
@@ -339,21 +333,3 @@ proc _SaveBMP
 	ret
 endproc
 
-;----------------------------------------
-; void ScreenShot(void);
-; Purpose: Saves the backbuffer as a raw graphics file.
-; Inputs:  None
-; Outputs: None
-; Notes:   Uses global variable ScreenShot_fn to determine filename to write to.
-;----------------------------------------
-proc _ScreenShot
-
-	mov	al, [ScreenShot_index]
-	mov	[ScreenShot_fn+7], al
-	inc	al
-	mov	[ScreenShot_index], al
-
-	invoke	_SaveBMP, dword ScreenShot_fn, word [_VideoBlock], dword 0, dword WINDOW_W, dword WINDOW_H
-
-	ret
-endproc
