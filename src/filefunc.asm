@@ -1,7 +1,7 @@
 ; File handling functions
 ;  By Peter Johnson, 1999-2001
 ;
-; $Id: filefunc.asm,v 1.14 2001/03/17 04:45:44 pete Exp $
+; $Id: filefunc.asm,v 1.15 2001/03/17 04:52:00 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 
@@ -53,6 +53,7 @@ proc _OpenFile
 	mov	word [DPMI_EDI], 0	; Hint number
 	mov	bx, 21h
 	call	DPMI_Int
+	movzx	eax, word [DPMI_EAX]	; Recover file handle
 	test	word [DPMI_FLAGS], 1	; CF=0 => no error, we're done
 	jz	.done
 
