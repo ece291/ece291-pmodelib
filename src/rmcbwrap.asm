@@ -3,7 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie.
 ;
-; $Id: rmcbwrap.asm,v 1.4 2000/12/18 07:28:46 pete Exp $
+; $Id: rmcbwrap.asm,v 1.5 2001/03/14 20:31:31 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 %include "dpmi_int.inc"
@@ -125,8 +125,8 @@ _RMCB_Wrap%{1}:
 	o16 pop	es
 
         ; Set return frame in DPMI_Regs structure given to us by DPMI
-	mov	eax, [esi]
-	mov	[es:edi+DPMI_IP_off], eax
+	mov	edx, [esi]
+	mov	[es:edi+DPMI_IP_off], edx
 
         ; Do the proper return (retf=1/iret=0)
         or      eax, eax
