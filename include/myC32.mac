@@ -3,7 +3,7 @@
 ;
 ; Originally included in NASM.  Modifications by Peter Johnson, 1999.
 ;
-; $Id: myC32.mac,v 1.3 2000/12/14 07:52:21 pete Exp $
+; $Id: myC32.mac,v 1.4 2000/12/18 07:27:43 pete Exp $
 
 %imacro proc 1                  ; begin a procedure definition
 %push proc
@@ -26,9 +26,11 @@
 %ifnctx proc
 %error Mismatched `endproc'/`proc'
 %else
-        mov     esp, ebp
-        pop     ebp
+;        mov     esp, ebp
+;        pop     ebp
+%ifdef LEGACY_ENDPROC
         ret
+%endif
 ;__end_%$procname:               ; useful for calculating function size
 ;          global %{$procname}_arglen
 ;%{$procname}_arglen    equ     %$arg-8
@@ -39,6 +41,37 @@
 ;%assign %$i %$i+1
 ;%endrep
 %pop
+%endif
+%endmacro
+
+; redefine ret instructions for in-proc cases
+%imacro ret 0-1
+%ifnctx proc
+	ret	%1
+%else
+	mov	esp, ebp
+	pop	ebp
+	ret	%1
+%endif
+%endmacro
+
+%imacro retf 0-1
+%ifnctx proc
+	retf	%1
+%else
+	mov	esp, ebp
+	pop	ebp
+	retf	%1
+%endif
+%endmacro
+
+%imacro retn 0-1
+%ifnctx proc
+	retn	%1
+%else
+	mov	esp, ebp
+	pop	ebp
+	retn	%1
 %endif
 %endmacro
 
