@@ -1,7 +1,7 @@
 # Makefile to build library
 #  By Peter Johnson, 1999-2000
 #
-# $Id: Makefile,v 1.5 2000/12/14 07:52:21 pete Exp $
+# $Id: Makefile,v 1.6 2001/03/02 08:03:39 pete Exp $
 
 # set some useful paths
 OBJ = obj
@@ -14,7 +14,7 @@ VPATH = examples src
 
 PROGRAMS = mousetst testint testnet
 
-OBJS = lib_load.o graphics.o vesa.o textmode.o gfxfiles.o filefunc.o \
+OBJS = lib_load.o vbeaf.o textmode.o gfxfiles.o filefunc.o \
        dpmi_int.o dpmi_mem.o int_wrap.o rmcbwrap.o netbios.o misc.o dma.o
 
 LIB_OBJS = $(addprefix $(OBJ)/, $(OBJS))

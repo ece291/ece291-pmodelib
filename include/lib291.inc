@@ -1,7 +1,7 @@
 ; Main pmodelib include
 ;  By Peter Johnson, 1999-2000
 ;
-; $Id: lib291.inc,v 1.6 2000/12/14 07:52:21 pete Exp $
+; $Id: lib291.inc,v 1.7 2001/03/02 08:03:39 pete Exp $
 
 %include "myC32.mac"
 
@@ -11,7 +11,6 @@
 %include "dpmi_int.inc"
 %include "dpmi_mem.inc"
 %include "filefunc.inc"
-%include "graphics.inc"
 %include "gfxfiles.inc"
 %include "int_wrap.inc"
 %include "lib_load.inc"
@@ -19,4 +18,4 @@
 %include "netbios.inc"
 %include "rmcbwrap.inc"
 %include "textmode.inc"
-%include "vesa.inc"
+%include "vbeaf.inc"
