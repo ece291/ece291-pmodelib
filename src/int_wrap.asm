@@ -3,6 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie, Shawn Hargreaves, and others.
 ;
+; $Id: int_wrap.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 

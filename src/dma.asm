@@ -6,6 +6,7 @@
 ;	- MikMod
 ;	- GUS SDK (!)
 ;
+; $Id: dma.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 

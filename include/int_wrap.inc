@@ -1,5 +1,7 @@
 ; IRQ Wrappers and handling functions header file
 ;  By Peter Johnson, 1999
+;
+; $Id: int_wrap.inc,v 1.2 2000/12/14 07:52:21 pete Exp $
 
         EXTERN  _Install_Int
         EXTERN  _Remove_Int

@@ -3,6 +3,7 @@
 ;
 ; Wrapper function by DJ Delorie.
 ;
+; $Id: rmcbwrap.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"
 %include "dpmi_mem.inc"
 %include "dpmi_int.inc"

@@ -1,5 +1,7 @@
 ; Various file loading functions
 ;  By Peter Johnson, 1999
+;
+; $Id: gfxfiles.asm,v 1.5 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"
 %include "constant.inc"
 %include "globals.inc"

@@ -1,6 +1,7 @@
 ; VESA (640x480x32-bit) routines
 ;  By Peter Johnson, 1999-2000
-
+;
+; $Id: vesa.asm,v 1.4 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"		; C interface macros
 
 %include "globals.inc"

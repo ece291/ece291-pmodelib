@@ -1,7 +1,9 @@
 ; Miscellaneous Routines
 ;  By Peter Johnson, 2000
+;
 ; Based on LIB291 BINASC, ASCBIN by Michael Loui and Tom Maciukenas
-
+;
+; $Id: misc.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"            ; C interface macros
 
         BITS    32

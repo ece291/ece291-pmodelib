@@ -1,6 +1,7 @@
 ; Text Mode (80x25x16) routines
 ;  By Peter Johnson, 1999
-
+;
+; $Id: textmode.asm,v 1.5 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"		; C interface macros
 %include "globals.inc"
 

@@ -1,5 +1,7 @@
 ; General constants and stuff
 ;  By Peter Johnson, 1999
+;
+; $Id: globals.inc,v 1.3 2000/12/14 07:52:21 pete Exp $
 
         EXTERN _VideoBlock      ; 32-bit Video Block Selector
         EXTERN _ScratchBlock    ; Scratch Block (1 meg)

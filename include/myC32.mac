@@ -1,5 +1,9 @@
 ; NASM macro set to make interfacing to 32-bit programs easier
-; Also cool little macros to make NASM emulate some MASM things:
+; Also cool little macros to make NASM emulate some MASM things.
+;
+; Originally included in NASM.  Modifications by Peter Johnson, 1999.
+;
+; $Id: myC32.mac,v 1.3 2000/12/14 07:52:21 pete Exp $
 
 %imacro proc 1                  ; begin a procedure definition
 %push proc

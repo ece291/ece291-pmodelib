@@ -1,5 +1,3 @@
-; ===== NetLIB Functions ==================================================
-
 ; NETBIOS Network Library Functions
 ; Multicast Datagram Transmit and Reception Funtions
 ; Copyright 1997, John Lockwood, All rights reserved
@@ -10,6 +8,8 @@
 ; Ported to DJGPP/NASM by Peter Johnson
 ;
 ; Version 2.0, Mar, 2000
+;
+; $Id: netbios.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"            ; C interface macros
 
 %include "globals.inc"

@@ -1,5 +1,7 @@
 ; DPMI Memory Interface header file
 ;  By Peter Johnson, 1999
+;
+; $Id: dpmi_mem.inc,v 1.4 2000/12/14 07:52:21 pete Exp $
 
 	EXTERN _AllocMem
 	EXTERN _FreeMem

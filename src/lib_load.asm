@@ -2,6 +2,8 @@
 ;  By Peter Johnson, 1999-2000
 ;
 ; Primarily saves segment registers and allocates selector to textmode RAM
+;
+; $Id: lib_load.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 %include "dpmi_mem.inc"

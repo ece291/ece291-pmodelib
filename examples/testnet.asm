@@ -1,5 +1,7 @@
 ; Test program for NetBIOS
 ;  By Peter Johnson, 2000
+;
+; $Id: testnet.asm,v 1.2 2000/12/14 07:52:21 pete Exp $
 %include "lib291.inc"
 
         BITS 32

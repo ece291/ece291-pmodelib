@@ -1,6 +1,7 @@
 ; DPMI Interface - Interrupt-related Functions
 ;  By Peter Johnson, 1999
-
+;
+; $Id: dpmi_int.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"
 
 	SECTION .bss

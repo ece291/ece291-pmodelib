@@ -1,5 +1,7 @@
 ; Graphics (640x480x32-bit) header file
 ;  By Peter Johnson, 2000
+;
+; $Id: graphics.inc,v 1.2 2000/12/14 07:52:21 pete Exp $
 
 	EXTERN _SetGraphics
 	EXTERN _UnsetGraphics

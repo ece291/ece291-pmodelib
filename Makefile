@@ -1,3 +1,8 @@
+# Makefile to build library
+#  By Peter Johnson, 1999-2000
+#
+# $Id: Makefile,v 1.5 2000/12/14 07:52:21 pete Exp $
+
 # set some useful paths
 OBJ = obj
 LIB = lib291.a

@@ -1,5 +1,7 @@
 ; DPMI Interrupt Interface header file
 ;  By Peter Johnson, 1999
+;
+; $Id: dpmi_int.inc,v 1.3 2000/12/14 07:52:21 pete Exp $
 
 	EXTERN DPMI_Int
 	EXTERN _AllocTransferBuf

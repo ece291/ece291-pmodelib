@@ -1,5 +1,7 @@
-; General constants and stuff
+; Main pmodelib include
 ;  By Peter Johnson, 1999-2000
+;
+; $Id: lib291.inc,v 1.6 2000/12/14 07:52:21 pete Exp $
 
 %include "myC32.mac"
 

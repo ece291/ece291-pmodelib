@@ -3,6 +3,7 @@
 ;
 ; String handling simplifications in _OpenFile (repnz) by Jason Galliccho.
 ;
+; $Id: filefunc.asm,v 1.5 2000/12/14 07:52:21 pete Exp $
 %include "myC32.mac"
 %include "dpmi_int.inc"
 

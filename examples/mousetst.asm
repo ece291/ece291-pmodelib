@@ -1,5 +1,7 @@
-; Test program for timer interrupt (hardware interrupt/IRQ handling)
+; Test program for mouse callback (real-mode callback wrappers)
 ;  By Peter Johnson, 1999
+;
+; $Id: mousetst.asm,v 1.3 2000/12/14 07:52:21 pete Exp $
 %include "lib291.inc"
 
         BITS 32
