@@ -5,7 +5,7 @@
 ;  dmaw32.c of the soundblaster development kit
 ;  soundlib291 (8 bit real mode driver)
 ;
-; $Id: sb16.asm,v 1.1 2001/04/03 04:39:34 mu Exp $
+; $Id: sb16.asm,v 1.2 2001/04/03 06:18:41 mu Exp $
 %include "myC32.mac"
 %include "constant.inc"
 
@@ -238,11 +238,6 @@ proc _SB16_Start
 	jmp	short .SBlength
 
 
-.SBlength
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size]
-	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
-
-
 .16bit
 	cmp	dword [ebp+.AutoInit], 0
 	jz	.SingleCycle8
@@ -263,7 +258,11 @@ proc _SB16_Start
 	jmp	short .SBlength
 .SB16mono
 	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword SB16_PLAY_MONO
-	jmp	.SBlength
+
+.SBlength
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size]
+	invoke	_SB16_DSPWrite, dword DSP_WRITE_PORT, dword [ebp+.Size+1]
+	jmp	.done
 
 .fail
 	xor	eax, eax
@@ -345,8 +344,8 @@ proc _SB16_SetFormat
 .bits
 	mov	[SB16_Bits], al
 
-	; accept < 256
-	cmp	ebx, 0FFh
+	; accept < 65536
+	cmp	ebx, 0FFFFh
 	ja	.fail
 	mov	[SB16_SampleRate], ebx
 
@@ -567,7 +566,10 @@ proc _SB16_GetEnv
 	inc	eax
 	mov	dl, [eax]
 	cmp	dl, ' '
+	je	.IRQdone
+	cmp	dl, 0
 	jne	.IRQfind
+.IRQdone
 	cmp	cl, 0Fh
 	ja	.fail
 	mov	[SB16_IRQ], cl
@@ -602,7 +604,7 @@ proc _SB16_GetEnv
 	mov	[SB16_DMA_Low], dl
 	or	bl, 4h
 	inc	eax
-	jmp	.IRQloop
+	jmp	.FindSettingsLoop
 
 .highDMA	; read H[0-7] as digit
 	inc	eax
@@ -615,7 +617,7 @@ proc _SB16_GetEnv
 	mov	[SB16_DMA_High], dl
 	or	bl, 8h
 	inc	eax
-	jmp	.IRQloop
+	jmp	.FindSettingsLoop
 
 endproc
 
